@@ -1,27 +1,47 @@
 package config
 
 import (
+	"embed"
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
 	Name    string `json:"name"`
-	Version int    `json:"version"`
-	Enabled bool   `json:"enabled"`
+	Version string `json:"version"`
 }
 
 func NewConfig() *Config {
 	c := &Config{}
-	c.decode()
+
+	c, err := c.getConfigOuter()
+	if err != nil {
+		c, err = c.getConfigInner()
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	return c
 }
 
-func (c *Config) decode() *Config {
+/*
+ * 从外部获取配置文件
+ */
+func (c *Config) getConfigOuter() (*Config, error) {
 
-	file, err := os.Open("data/config.json")
+	exe, err := os.Executable()
 	if err != nil {
-		panic(err)
+		return nil, err
+	}
+	exePath := filepath.Dir(exe)
+	exePath = "E:/app1/ym3-go"
+	configPath := filepath.Join(exePath, "data", "config.json")
+
+	file, err := os.Open(configPath)
+	if err != nil {
+		return nil, err
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -36,5 +56,24 @@ func (c *Config) decode() *Config {
 		panic(err)
 	}
 
-	return c
+	return c, nil
+}
+
+/*
+ * 从内部获取配置文件
+ */
+func (c *Config) getConfigInner() (*Config, error) {
+
+	var configFile embed.FS
+	data, err := configFile.ReadFile("data/config.json")
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(data, &c)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }

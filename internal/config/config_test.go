@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	"github.com/adamchenEpm/go-ym3/internal/config"
+	"github.com/adamchenEpm/ym3-go/internal/config"
 	"testing"
 )
 
