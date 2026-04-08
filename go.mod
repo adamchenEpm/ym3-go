@@ -1,3 +1,3 @@
-module  github.com/adamchenEpm/ym3-go
+module github.com/adamchenEpm/ym3-go
 
 go 1.26.1

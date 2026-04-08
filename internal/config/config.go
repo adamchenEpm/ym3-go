@@ -1,7 +1,6 @@
 package config
 
 import (
-	"embed"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -10,70 +9,44 @@ import (
 type Config struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+	Code    string `json:"code"`
 }
 
 func NewConfig() *Config {
 	c := &Config{}
 
-	c, err := c.getConfigOuter()
-	if err != nil {
-		c, err = c.getConfigInner()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	return c
-}
-
-/*
- * 从外部获取配置文件
- */
-func (c *Config) getConfigOuter() (*Config, error) {
-
+	// exe
 	exe, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-	exePath := filepath.Dir(exe)
-	exePath = "E:/app1/ym3-go"
-	configPath := filepath.Join(exePath, "data", "config.json")
-
-	file, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
-	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-
-		}
-	}(file)
-
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(c)
-	if err != nil {
-		panic(err)
+	filename := filepath.Join(filepath.Dir(exe), "data", "config.json")
+	err = c.unmarshal(filename)
+	if err == nil {
+		return c
 	}
 
-	return c, nil
+	//lcoal
+	filename = filepath.Join("data", "config.json")
+	err = c.unmarshal(filename)
+	if err == nil {
+		return c
+	}
+
+	panic(err)
 }
 
 /*
- * 从内部获取配置文件
+ * 取配置文件
  */
-func (c *Config) getConfigInner() (*Config, error) {
+func (c *Config) unmarshal(filename string) error {
 
-	var configFile embed.FS
-	data, err := configFile.ReadFile("data/config.json")
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	err = json.Unmarshal(data, &c)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c, nil
+	return nil
 }
