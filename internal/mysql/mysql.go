@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/adamchenEpm/ym3-go/internal/config"
+	"net/url"
 	"reflect"
 	"strings"
 	"sync"
@@ -37,8 +38,10 @@ func GetInstance() *MySQLUtil {
 func (m *MySQLUtil) init() error {
 	// 从全局配置中读取 MySQL 配置（可根据实际调整）
 	cfg := config.Get()
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name)
+
+	loc := url.QueryEscape("Asia/Shanghai")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s",
+		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name, loc)
 	var err error
 	m.db, err = sql.Open("mysql", dsn)
 	if err != nil {
