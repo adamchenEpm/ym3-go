@@ -10,7 +10,7 @@ import (
  */
 func Test_config_NewConfig(t *testing.T) {
 
-	cfg := config.NewConfig()
+	cfg := config.Get()
 	//t.Assert(cfg != nil)
 
 	t.Logf("Config.name: %v,  code :%v", cfg.Name, cfg.Code)

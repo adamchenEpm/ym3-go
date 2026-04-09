@@ -2,8 +2,10 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Config struct {
@@ -12,41 +14,51 @@ type Config struct {
 	Code    string `json:"code"`
 }
 
-func NewConfig() *Config {
-	c := &Config{}
+var (
+	defaultConfig *Config
+	once          sync.Once
+)
 
-	// 可执行文件目录下
-	exe, err := os.Executable()
-	filename := filepath.Join(filepath.Dir(exe), "data", "config.json")
-	err = c.unmarshal(filename)
-	if err == nil {
-		return c
-	}
-
-	// 当前目录下
-	filename = filepath.Join("data", "config.json")
-	err = c.unmarshal(filename)
-	if err == nil {
-		return c
-	}
-
-	panic(err)
+func Get() *Config {
+	once.Do(func() {
+		var err error
+		defaultConfig, err = loadConfig()
+		if err != nil {
+			panic(fmt.Errorf("加载配置失败: %w", err))
+		}
+	})
+	return defaultConfig
 }
 
-/*
- * 读取配置文件转成配置类
- */
-func (c *Config) unmarshal(filename string) error {
+// loadConfig 内部加载逻辑，尝试多个路径
+func loadConfig() (*Config, error) {
+	c := &Config{}
+	paths := []string{
+		filepath.Join(executableDir(), "data", "config.json"),
+		filepath.Join("data", "config.json"),
+		filepath.Join("config.json"),
+	}
+	for _, p := range paths {
+		if err := c.LoadFromFile(p); err == nil {
+			return c, nil
+		}
+	}
+	return nil, fmt.Errorf("未找到配置文件")
+}
 
+// LoadFromFile 从指定文件加载配置到当前结构体
+func (c *Config) LoadFromFile(filename string) error {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
+	return json.Unmarshal(data, c)
+}
 
-	err = json.Unmarshal(data, &c)
+func executableDir() string {
+	exe, err := os.Executable()
 	if err != nil {
-		return err
+		return "."
 	}
-
-	return nil
+	return filepath.Dir(exe)
 }
