@@ -5,7 +5,10 @@ import (
 	"testing"
 )
 
-func Test_NewConfig(t *testing.T) {
+/*
+ * 测试 config.NewConfig
+ */
+func Test_config_NewConfig(t *testing.T) {
 
 	cfg := config.NewConfig()
 	//t.Assert(cfg != nil)

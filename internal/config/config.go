@@ -15,7 +15,7 @@ type Config struct {
 func NewConfig() *Config {
 	c := &Config{}
 
-	// exe
+	// 可执行文件目录下
 	exe, err := os.Executable()
 	filename := filepath.Join(filepath.Dir(exe), "data", "config.json")
 	err = c.unmarshal(filename)
@@ -23,7 +23,7 @@ func NewConfig() *Config {
 		return c
 	}
 
-	//lcoal
+	// 当前目录下
 	filename = filepath.Join("data", "config.json")
 	err = c.unmarshal(filename)
 	if err == nil {
@@ -34,7 +34,7 @@ func NewConfig() *Config {
 }
 
 /*
- * 取配置文件
+ * 读取配置文件转成配置类
  */
 func (c *Config) unmarshal(filename string) error {
 
