@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Name    string   `json:"name"`
-	Version string   `json:"version"`
-	Code    string   `json:"code"`
-	DB      DBConfig `json:"db"` // 数据库配置子结构
+	Name    string      `json:"name"`
+	Version string      `json:"version"`
+	Code    string      `json:"code"`
+	DB      DBConfig    `json:"db"` // 数据库配置子结构
+	Redis   RedisConfig `json:"redis"`
 }
 
 type DBConfig struct {
@@ -24,6 +25,18 @@ type DBConfig struct {
 	Name     string `json:"name"` // 数据库名
 	// 可选：额外参数，如 charset, sslmode 等
 	Params map[string]string `json:"params,omitempty"`
+}
+
+type RedisConfig struct {
+	Host         string `json:"host"`
+	Port         int    `json:"port"`
+	Password     string `json:"password"`
+	DB           int    `json:"db"`
+	PoolSize     int    `json:"pool_size"`
+	MinIdleConns int    `json:"min_idle_conns"`
+	DialTimeout  int    `json:"dial_timeout"`  // 秒
+	ReadTimeout  int    `json:"read_timeout"`  // 秒
+	WriteTimeout int    `json:"write_timeout"` // 秒
 }
 
 var (

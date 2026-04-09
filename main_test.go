@@ -3,6 +3,7 @@ package main_test
 import (
 	"github.com/adamchenEpm/ym3-go/internal/config"
 	"github.com/adamchenEpm/ym3-go/internal/mysql"
+	"github.com/adamchenEpm/ym3-go/internal/redis"
 	"testing"
 	"time"
 )
@@ -60,4 +61,37 @@ func TestIntegration_BatchInsert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BatchInsert失败: %v", err)
 	}
+}
+
+func Test_Redis_BasicOps(t *testing.T) {
+	rdb := redis.GetInstance()
+	defer rdb.Close()
+
+	key := "test:user:138"
+	// 1. 设置值
+	err := rdb.Set(key, "张三", 60*time.Second)
+	if err != nil {
+		t.Fatalf("Set失败: %v", err)
+	}
+
+	// 2. 获取值
+	val, err := rdb.Get(key)
+	if err != nil {
+		t.Fatalf("Get失败: %v", err)
+	}
+	if val != "张三" {
+		t.Errorf("期望 '张三', 得到 '%s'", val)
+	}
+	t.Logf("Get成功: %s = %s", key, val)
+
+	// 3. 删除
+	//err = rdb.Del(key)
+	//if err != nil {
+	//	t.Fatalf("Del失败: %v", err)
+	//}
+	//val2, err := rdb.Get(key)
+	//if err == nil {
+	//	t.Errorf("期望 key 不存在，但得到 '%s'", val2)
+	//}
+	//t.Log("删除后 key 已不存在")
 }
