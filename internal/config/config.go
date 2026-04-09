@@ -9,9 +9,21 @@ import (
 )
 
 type Config struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Code    string `json:"code"`
+	Name    string   `json:"name"`
+	Version string   `json:"version"`
+	Code    string   `json:"code"`
+	DB      DBConfig `json:"db"` // 数据库配置子结构
+}
+
+type DBConfig struct {
+	Type     string `json:"type"` // 数据库类型，如 "mysql", "postgres"
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Name     string `json:"name"` // 数据库名
+	// 可选：额外参数，如 charset, sslmode 等
+	Params map[string]string `json:"params,omitempty"`
 }
 
 var (
