@@ -50,6 +50,37 @@ comment on column sys_user.create_time is '创建时间';
 comment on column sys_user.update_time is '更新时间';
 comment on column sys_user.status is '状态(1:有效,0:无效)';
 
+
+-- 4. 通道表（飞书机器人/微信公众号等）
+create table if not exists sys_channel (
+    id bigserial primary key,
+    name varchar(255) not null,
+    type varchar(255) not null,
+    app_id varchar(255) default '',
+    app_secret varchar(255) default '',
+    link_way varchar(255) default '',
+    sort int default 101,
+    remark varchar(255) default '',
+    create_time timestamp default current_timestamp,
+    update_time timestamp default current_timestamp,
+    status smallint default 1
+    );
+
+comment on table sys_channel is '通道';
+comment on column sys_channel.id is 'ID';
+comment on column sys_channel.name is '名称';
+comment on column sys_channel.type is '类型(feishu,dingtalk,wechat_personal,wechat_work,qq)';
+comment on column sys_channel.app_id is '应用ID';
+comment on column sys_channel.app_secret is '应用密钥';
+comment on column sys_channel.link_way is '链接方式(websocket,webhook,http)';
+comment on column sys_channel.sort is '排序';
+comment on column sys_channel.remark is '备注';
+comment on column sys_channel.create_time is '创建时间';
+comment on column sys_channel.update_time is '修改时间';
+comment on column sys_channel.status is '状态(1:无效,2:有效)';
+
+
+
 -- 3. 通道实例表（对应每个机器人/应用）
 create table if not exists sys_channel_instance (
     id serial primary key,
@@ -59,7 +90,7 @@ create table if not exists sys_channel_instance (
     create_time timestamp default current_timestamp,
     update_time timestamp default current_timestamp,
     status smallint default 1
-    );
+);
 comment on table sys_channel_instance is '通道实例表（飞书机器人/微信公众号等）';
 comment on column sys_channel_instance.id is '实例ID';
 comment on column sys_channel_instance.channel_type is '通道类型(feishu,dingtalk,wechat_personal,wechat_work,qq)';
