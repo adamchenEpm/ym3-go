@@ -52,8 +52,8 @@ comment on column sys_user.status is '状态(1:有效,0:无效)';
 
 -- 3. 通道实例表（对应每个机器人/应用）
 create table if not exists sys_channel_instance (
-                                                    id serial primary key,
-                                                    channel_type varchar(20) not null,
+    id serial primary key,
+    channel_type varchar(20) not null,
     name varchar(100) not null,
     config jsonb not null,
     create_time timestamp default current_timestamp,
@@ -71,8 +71,8 @@ comment on column sys_channel_instance.status is '状态(1:有效,0:无效)';
 
 -- 4. 用户绑定表（内部用户 ↔ 外部通道身份）
 create table if not exists sys_user_binding (
-                                                id serial primary key,
-                                                internal_user_id int not null references sys_user(id) on delete cascade,
+    id serial primary key,
+    internal_user_id int not null references sys_user(id) on delete cascade,
     channel_instance_id int not null references sys_channel_instance(id) on delete cascade,
     external_user_id varchar(100) not null,
     external_chat_id varchar(100),
@@ -99,8 +99,8 @@ comment on column sys_user_binding.status is '状态(1:有效,0:无效)';
 
 -- 5. 群组配置表
 create table if not exists sys_group_config (
-                                                id serial primary key,
-                                                channel_instance_id int not null references sys_channel_instance(id) on delete cascade,
+    id serial primary key,
+    channel_instance_id int not null references sys_channel_instance(id) on delete cascade,
     external_chat_id varchar(100) not null,
     config jsonb not null,
     create_time timestamp default current_timestamp,
@@ -119,8 +119,8 @@ comment on column sys_group_config.status is '状态(1:有效,0:无效)';
 
 -- 6. 模型规则表
 create table if not exists sys_model_rule (
-                                              id serial primary key,
-                                              channel_instance_id int references sys_channel_instance(id) on delete cascade,
+    id serial primary key,
+    channel_instance_id int references sys_channel_instance(id) on delete cascade,
     match_type varchar(20) not null,
     match_value text,
     priority int default 0,
@@ -148,9 +148,9 @@ comment on column sys_model_rule.status is '状态(1:有效,0:无效)';
 
 -- 7. 菜单表
 create table if not exists sys_menu (
-                                        id serial primary key,
-                                        parent_id int default 0,
-                                        name varchar(100) not null,
+    id serial primary key,
+    parent_id int default 0,
+    name varchar(100) not null,
     path varchar(200),
     icon varchar(50),
     permission_key varchar(100) unique,
@@ -175,8 +175,8 @@ comment on column sys_menu.status is '状态(1:有效,0:无效)';
 
 -- 8. 审计日志表
 create table if not exists sys_audit_log (
-                                             id bigserial primary key,
-                                             user_id int references sys_user(id) on delete set null,
+    id bigserial primary key,
+    user_id int references sys_user(id) on delete set null,
     channel_instance_id int references sys_channel_instance(id) on delete set null,
     external_user_id varchar(100),
     action varchar(50) not null,
@@ -204,7 +204,7 @@ comment on column sys_audit_log.status is '状态(1:有效,0:无效)';
 
 -- 9. 系统配置表
 create table if not exists sys_config (
-                                          config_key varchar(100) primary key,
+    config_key varchar(100) primary key,
     value text,
     description text,
     create_time timestamp default current_timestamp,
@@ -221,8 +221,8 @@ comment on column sys_config.status is '状态(1:有效,0:无效)';
 
 -- 10. 对话记忆表（向量记忆，用于龙虾记忆）
 create table if not exists sys_conversation_memory (
-                                                       id bigserial primary key,
-                                                       user_id int not null references sys_user(id) on delete cascade,
+    id bigserial primary key,
+    user_id int not null references sys_user(id) on delete cascade,
     channel_instance_id int references sys_channel_instance(id) on delete set null,
     role varchar(20) not null,
     content text not null,
