@@ -1,7 +1,9 @@
 package main_test
 
 import (
+	"context"
 	"github.com/adamchenEpm/ym3-go/internal/config"
+	"github.com/adamchenEpm/ym3-go/internal/llm"
 	"github.com/adamchenEpm/ym3-go/internal/mysql"
 	"github.com/adamchenEpm/ym3-go/internal/redis"
 	"testing"
@@ -94,4 +96,54 @@ func Test_Redis_BasicOps(t *testing.T) {
 	//	t.Errorf("期望 key 不存在，但得到 '%s'", val2)
 	//}
 	//t.Log("删除后 key 已不存在")
+}
+
+func Test_llm_Aliyun(t *testing.T) {
+	// 1. 创建阿里百炼客户端配置
+	cfg := &llm.Config{
+		Provider:      llm.ProviderAliyun,
+		AliyunAPIKey:  "sk-16ab6965525b4bd4bd245d9e8a3a693c", // 请替换为您的真实 API Key
+		AliyunBaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+		AliyunModel:   "glm-5", // 可选 qwen-plus, qwen-max
+	}
+
+	// 2. 创建客户端
+	client, err := llm.NewClient(cfg)
+	if err != nil {
+		t.Fatalf("创建客户端失败: %v", err)
+	}
+
+	// 3. 构造请求消息
+	messages := []llm.Message{
+		{Role: "system", Content: "你是一个乐于助人的助手，请用中文回答。"},
+		{Role: "user", Content: "你好，请简单介绍一下自己。"},
+	}
+
+	req := &llm.ChatRequest{
+		Messages:    messages,
+		Temperature: 0.7,
+		MaxTokens:   500,
+		// Model 字段可选，如果留空则使用配置中的 AliyunModel
+	}
+
+	// 4. 调用大模型（带超时控制）
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	resp, err := client.ChatCompletion(ctx, req)
+	if err != nil {
+		t.Fatalf("调用大模型失败: %v", err)
+	}
+
+	// 5. 输出结果
+	t.Logf("模型回复: %s", resp.Content)
+	t.Logf("Token使用情况: prompt=%d, completion=%d, total=%d",
+		resp.Usage.PromptTokens,
+		resp.Usage.CompletionTokens,
+		resp.Usage.TotalTokens)
+
+	// 可选：验证非空
+	if resp.Content == "" {
+		t.Errorf("回复内容为空")
+	}
 }

@@ -5,6 +5,29 @@ create database if not exists ym3_main;
 -- 启用 pgvector 扩展（向量记忆需要）
 create extension if not exists vector;
 
+
+-- 1. 大模型表
+create table sys_llm (
+    id serial primary key,
+    name varchar(100) not null unique,
+    remark text,
+    create_time timestamp default current_timestamp,
+    update_time timestamp default current_timestamp,
+    status smallint default 1
+);
+
+comment on table sys_llm is '大模型表';
+comment on column sys_llm.id is '大模型ID';
+comment on column sys_llm.name is '大模型名称';
+comment on column sys_llm.remark is '角色描述';
+comment on column sys_llm.create_time is '创建时间';
+comment on column sys_llm.update_time is '更新时间';
+comment on column sys_llm.status is '状态(1:有效,0:无效)';
+
+insert into sys_llm (id, name, remark) values (101, 'OpenAI' , '');
+insert into sys_llm (name, remark) values ('Aliyun' , '');
+
+
 -- 1. 角色表
 create table if not exists sys_role (
     id serial primary key,

@@ -9,7 +9,7 @@ import (
 	"github.com/adamchenEpm/ym3-go/internal/channel"
 )
 
-func main() {
+func main1() {
 	manager := channel.NewChannelManager()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
