@@ -37,12 +37,12 @@ func Test_common_Encrypt(t *testing.T) {
 }
 
 func Test_pg_QueryToStructs(t *testing.T) {
-	pg := pg.GetInstance()
-	defer pg.Close()
+	db := pg.GetInstance()
+	defer func() { _ = db.Close() }()
 
 	var llms []pgmodel.SysLlm
 
-	err := pg.QueryToStructs(pgmodel.SysLlmSelect+" where id = $1", &llms, 1)
+	err := db.QueryToStructs(pgmodel.SysLlmSelect+" where id = $1", &llms, 1)
 	if err != nil {
 		t.Fatalf("QueryToStructs失败: %v", err)
 	}

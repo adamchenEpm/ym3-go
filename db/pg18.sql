@@ -14,12 +14,73 @@ create extension vector;
 
 alter database ym3_main SET timezone TO 'Asia/Shanghai';
 
+-- 部门表
+CREATE TABLE IF NOT EXISTS sys_dept (
+    id          BIGSERIAL PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    pid          BIGSERIAL DEFAULT NULL,
+    remark      VARCHAR(100) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT NULL,
+    update_time TIMESTAMP DEFAULT NULL,
+    status      SMALLINT DEFAULT 2
+);
+
+COMMENT ON TABLE sys_dept IS '部门';
+COMMENT ON COLUMN sys_dept.id IS '部门Id';
+COMMENT ON COLUMN sys_dept.name IS '部门名称';
+COMMENT ON COLUMN sys_dept.remark IS '备注';
+COMMENT ON COLUMN sys_dept.create_time IS '创建时间';
+COMMENT ON COLUMN sys_dept.update_time IS '修改时间';
+COMMENT ON COLUMN sys_role.status IS '状态(1:停用,2:启用)';
+
+-- 部门表.索引
+CREATE INDEX idx_sys_dept_name ON sys_dept(name);
+CREATE INDEX idx_sys_dept_status ON sys_dept(status);
+
+-- 部门表.基础数据
+insert into sys_dept (id, name, pid, remark, status)
+values (1, 'xx公司', null, '', 2),
+(101, '营销中心', 1, '', 2),
+(102, '设计中心', 1, '', 2),
+(104, '采购中心', 1, '', 2),
+(105, '财务中心', 1, '', 2),
+(106, '行政中心', 1, '', 2),
+(107, '信息中心', 1, '', 2),
+(109, '产品中心', 1, '', 2),
+(110, '客户中心', 1,, '', 2);
+
+-- 角色表
+CREATE TABLE IF NOT EXISTS sys_role (
+    id          BIGSERIAL PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    remark      VARCHAR(100) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT NULL,
+    update_time TIMESTAMP DEFAULT NULL,
+    status      SMALLINT DEFAULT 2
+);
+
+COMMENT ON TABLE sys_role IS '角色';
+COMMENT ON COLUMN sys_role.id IS '角色Id';
+COMMENT ON COLUMN sys_role.name IS '角色名称';
+COMMENT ON COLUMN sys_role.remark IS '备注';
+COMMENT ON COLUMN sys_role.create_time IS '创建时间';
+COMMENT ON COLUMN sys_role.update_time IS '修改时间';
+COMMENT ON COLUMN sys_role.status IS '状态(1:停用,2:启用)';
+
+-- 角色表.索引
+CREATE INDEX idx_sys_role_name ON sys_role(name);
+CREATE INDEX idx_sys_role_status ON sys_role(status);
+
+-- 角色表.基础数据
+insert into sys_role (id, name, remark, status)
+values (1, '管理员', '', 2);
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS sys_user (
     id          BIGSERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
     nickname    VARCHAR(100) DEFAULT NULL,
+    dept_id     BIGSERIAL DEFAULT NULL,
     mobile      VARCHAR(20) DEFAULT '',
     email       VARCHAR(100) DEFAULT '',
     password    VARCHAR(500) NOT NULL,
@@ -33,6 +94,7 @@ COMMENT ON TABLE sys_user IS '用户';
 COMMENT ON COLUMN sys_user.id IS '用户Id';
 COMMENT ON COLUMN sys_user.name IS '用户名称';
 COMMENT ON COLUMN sys_user.nickname IS '用户昵称';
+COMMENT ON COLUMN sys_user.dept_id IS '部门Id';
 COMMENT ON COLUMN sys_user.mobile IS '用户手机';
 COMMENT ON COLUMN sys_user.email IS '用户邮箱';
 COMMENT ON COLUMN sys_user.password IS '用户密码';
@@ -45,7 +107,10 @@ COMMENT ON COLUMN sys_user.status IS '状态(1:停用,2:启用)';
 CREATE INDEX idx_sys_user_mobile ON sys_user(mobile);
 CREATE INDEX idx_sys_user_status ON sys_user(status);
 
--- 用户表.原始数据
+-- 用户表.基础数据
+insert into sys_user (id, name, nickname, dept_id, mobile, email, password, remark, status)
+values (1, 'admin', '管理员', 107, '13922110987', '232028819@qq.com',
+    'AES-GCM:VkAO3Xpls98BOQ1bILjBcGzC7Ip7zydsgyvd2VxHzA==', '', 2);
 
 
 -- 大模型表
