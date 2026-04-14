@@ -12,17 +12,17 @@ type Config struct {
 	Name    string      `json:"name"`
 	Version string      `json:"version"`
 	Code    string      `json:"code"`
-	Pg      DBConfig    `json:"pg"`
+	Pg      PgConfig    `json:"pg"`
 	Redis   RedisConfig `json:"redis"`
 }
 
-type DBConfig struct {
+type PgConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Name     string `json:"name"` // 数据库名
-	// 可选：额外参数，如 charset, sslmode 等
+	// 可选：额外参数
 	Params map[string]string `json:"params,omitempty"`
 }
 

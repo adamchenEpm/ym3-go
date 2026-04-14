@@ -1,9 +1,18 @@
 
--- 创建数据库
-create database ym3_main;
+create user ym3_user with password 'ym3_pwd';
 
--- 启用 pgvector 扩展（向量记忆需要）
+create database ym3_main
+ENCODING = 'UTF8'
+LC_COLLATE = 'zh_CN.utf8'
+LC_CTYPE = 'zh_CN.utf8'
+TEMPLATE = template0
+OWNER = ym3_user;
+
+\c ym3_main
+
 create extension vector;
+
+alter database ym3_main SET timezone TO 'Asia/Shanghai';
 
 -- 1. 大模型表
 create table sys_llm (

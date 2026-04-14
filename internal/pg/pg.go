@@ -35,9 +35,8 @@ func GetInstance() *PgUtil {
 // init 初始化数据库连接池
 func (p *PgUtil) init() error {
 	cfg := config.Get() // 从你的配置中读取 PG 配置
-	// 连接字符串格式：postgres://user:pass@host:port/dbname?sslmode=disable
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		cfg.Pg.User, cfg.Pg.Password, cfg.Pg.Host, cfg.Pg.Port, cfg.Pg.Name)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s&timezone=%s",
+		cfg.Pg.User, cfg.Pg.Password, cfg.Pg.Host, cfg.Pg.Port, cfg.Pg.Name, cfg.Pg.Params["sslmode"], cfg.Pg.Params["timezone"])
 	var err error
 	p.db, err = sql.Open("pgx", dsn)
 	if err != nil {

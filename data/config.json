@@ -5,12 +5,12 @@
   "pg": {
     "host": "124.71.0.237",
     "port": 5432,
-    "user": "user_n63pdW",
-    "password": "password_WesfEX",
+    "user": "ym3_user",
+    "password": "ym3_pwd",
     "name": "ym3_main",
     "params": {
-      "charset": "utf8mb4",
-      "parseTime": "true"
+      "sslmode": "disable",
+      "timezone": "Asia/Shanghai"
     }
   },
   "redis": {

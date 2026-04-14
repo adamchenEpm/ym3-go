@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"github.com/adamchenEpm/ym3-go/internal/common"
 	"github.com/adamchenEpm/ym3-go/internal/config"
 	"github.com/adamchenEpm/ym3-go/internal/llm"
 	"github.com/adamchenEpm/ym3-go/internal/pg"
@@ -36,7 +37,8 @@ func Test_pg_QueryToStructs(t *testing.T) {
 	if len(llms) == 0 {
 		t.Logf("查询结果是空的 ")
 	} else {
-		t.Logf("查询结果正确: %+v", llms[0])
+		t.Logf("查询结果正确: %+v ", llms[0])
+		t.Logf("更新时间:%s", common.TimeToStr(llms[0].UpdateTime))
 	}
 
 }
