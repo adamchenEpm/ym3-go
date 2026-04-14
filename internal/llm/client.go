@@ -8,9 +8,9 @@ import (
 type Provider string
 
 const (
-	ProviderOpenAICompat Provider = "openai_compat" // OpenAI 兼容（DeepSeek, Moonshot 等）
-	ProviderAliyun       Provider = "aliyun"        // 阿里百炼
-	ProviderCustom       Provider = "custom"        // 自定义通用
+	ProviderOpenAI Provider = "openai" // OpenAI 兼容（DeepSeek, Moonshot 等）
+	ProviderAliyun Provider = "aliyun" // 阿里百炼
+	ProviderCustom Provider = "custom" // 自定义通用
 )
 
 // Config 模型客户端配置
@@ -42,7 +42,7 @@ func NewClient(cfg *Config) (Client, error) {
 		return nil, fmt.Errorf("config is nil")
 	}
 	switch cfg.Provider {
-	case ProviderOpenAICompat:
+	case ProviderOpenAI:
 		return NewOpenAICompatClient(cfg), nil
 	case ProviderAliyun:
 		return NewAliyunClient(cfg), nil

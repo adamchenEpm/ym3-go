@@ -1,15 +1,19 @@
 
 -- 创建数据库
-create database if not exists ym3_main;
+create database ym3_main;
 
 -- 启用 pgvector 扩展（向量记忆需要）
-create extension if not exists vector;
-
+create extension vector;
 
 -- 1. 大模型表
 create table sys_llm (
     id serial primary key,
-    name varchar(100) not null unique,
+    name varchar(100),
+    type varchar(100),
+    base_url text,
+    api_key varchar(100),
+    model_id varchar(100),
+    model_name varchar(100),
     remark text,
     create_time timestamp default current_timestamp,
     update_time timestamp default current_timestamp,
@@ -17,15 +21,23 @@ create table sys_llm (
 );
 
 comment on table sys_llm is '大模型表';
-comment on column sys_llm.id is '大模型ID';
-comment on column sys_llm.name is '大模型名称';
-comment on column sys_llm.remark is '角色描述';
+comment on column sys_llm.id is 'ID';
+comment on column sys_llm.name is '名称';
+comment on column sys_llm.type is '类型';
+comment on column sys_llm.base_url is '基本URL';
+comment on column sys_llm.api_key is 'API Key';
+comment on column sys_llm.model_id is '模型ID';
+comment on column sys_llm.model_name is '模型名称';
+comment on column sys_llm.remark is '备注';
 comment on column sys_llm.create_time is '创建时间';
 comment on column sys_llm.update_time is '更新时间';
-comment on column sys_llm.status is '状态(1:有效,0:无效)';
+comment on column sys_llm.status is '状态(1:无效,2:有效)';
 
-insert into sys_llm (id, name, remark) values (101, 'OpenAI' , '');
-insert into sys_llm (name, remark) values ('Aliyun' , '');
+insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, remark,status) values
+(1, 'Aliyun' , 'aliyun',  'https://dashscope.aliyuncs.com/compatible-mode/v1', 'sk-16ab6965525b4bd4bd245d9e8a3a693c', 'glm-5', 'glm-5', '智普',   2);
+
+insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, remark,status) values
+(2, 'OpenAI' , 'openai', '', 'GPT-6', 'GPT-6', '未来',  '',2);
 
 
 -- 1. 角色表

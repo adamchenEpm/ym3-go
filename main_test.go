@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/adamchenEpm/ym3-go/internal/config"
 	"github.com/adamchenEpm/ym3-go/internal/llm"
-	"github.com/adamchenEpm/ym3-go/internal/mysql"
+	"github.com/adamchenEpm/ym3-go/internal/pg"
+	pgmodel "github.com/adamchenEpm/ym3-go/internal/pg/model"
 	"github.com/adamchenEpm/ym3-go/internal/redis"
 	"testing"
 	"time"
@@ -21,48 +22,23 @@ func Test_config_NewConfig(t *testing.T) {
 	t.Logf("Config.name: %v,  code :%v", cfg.Name, cfg.Code)
 }
 
-/*
- * 测试 mysql.QueryToStructs
- */
-func Test_mysql_QueryToStructs(t *testing.T) {
-	db := mysql.GetInstance()
-	defer db.Close()
+func Test_pg_QueryToStructs(t *testing.T) {
+	pg := pg.GetInstance()
+	defer pg.Close()
 
-	// 4. 查询并扫描到结构体
-	type User struct {
-		ID         int64      `db:"id"`
-		Name       string     `db:"name"`
-		UpdateTime *time.Time `db:"update_time"`
-	}
-	var users []User
-	err := db.QueryToStructs("SELECT id, name,update_time FROM sys_user WHERE id = ?", &users, 138)
+	var llms []pgmodel.SysLlm
+
+	err := pg.QueryToStructs(pgmodel.SysLlmSelect+" where id = $1", &llms, 1)
 	if err != nil {
 		t.Fatalf("QueryToStructs失败: %v", err)
 	}
-	if len(users) < 1 {
+
+	if len(llms) == 0 {
 		t.Logf("查询结果是空的 ")
 	} else {
-		t.Logf("查询结果正确: %+v", users)
-		if users[0].UpdateTime != nil {
-			t.Logf("格式化 update_time: %v", users[0].UpdateTime.Format("2006-01-02 15:04:05"))
-		}
+		t.Logf("查询结果正确: %+v", llms[0])
 	}
 
-}
-
-// TestIntegration_BatchInsert 测试批量插入
-func TestIntegration_BatchInsert(t *testing.T) {
-	db := mysql.GetInstance()
-	defer db.Close()
-
-	rows := [][]interface{}{
-		{"John", 22},
-		{"Jane", 27},
-	}
-	err := db.BatchInsert("users", []string{"name", "age"}, rows)
-	if err != nil {
-		t.Fatalf("BatchInsert失败: %v", err)
-	}
 }
 
 func Test_Redis_BasicOps(t *testing.T) {

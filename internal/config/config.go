@@ -12,12 +12,11 @@ type Config struct {
 	Name    string      `json:"name"`
 	Version string      `json:"version"`
 	Code    string      `json:"code"`
-	DB      DBConfig    `json:"db"` // 数据库配置子结构
+	Pg      DBConfig    `json:"pg"`
 	Redis   RedisConfig `json:"redis"`
 }
 
 type DBConfig struct {
-	Type     string `json:"type"` // 数据库类型，如 "mysql", "postgres"
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	User     string `json:"user"`
@@ -31,7 +30,7 @@ type RedisConfig struct {
 	Host         string `json:"host"`
 	Port         int    `json:"port"`
 	Password     string `json:"password"`
-	DB           int    `json:"db"`
+	DB           int    `json:"pg"`
 	PoolSize     int    `json:"pool_size"`
 	MinIdleConns int    `json:"min_idle_conns"`
 	DialTimeout  int    `json:"dial_timeout"`  // 秒
