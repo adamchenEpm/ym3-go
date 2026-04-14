@@ -14,9 +14,43 @@ create extension vector;
 
 alter database ym3_main SET timezone TO 'Asia/Shanghai';
 
--- 1. 大模型表
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS sys_user (
+    id          BIGSERIAL PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    nickname    VARCHAR(100) DEFAULT NULL,
+    mobile      VARCHAR(20) DEFAULT '',
+    email       VARCHAR(100) DEFAULT '',
+    password    VARCHAR(500) NOT NULL,
+    remark      VARCHAR(100) DEFAULT NULL,
+    create_time TIMESTAMP DEFAULT NULL,
+    update_time TIMESTAMP DEFAULT NULL,
+    status      SMALLINT DEFAULT 2
+);
+
+COMMENT ON TABLE sys_user IS '用户';
+COMMENT ON COLUMN sys_user.id IS '用户Id';
+COMMENT ON COLUMN sys_user.name IS '用户名称';
+COMMENT ON COLUMN sys_user.nickname IS '用户昵称';
+COMMENT ON COLUMN sys_user.mobile IS '用户手机';
+COMMENT ON COLUMN sys_user.email IS '用户邮箱';
+COMMENT ON COLUMN sys_user.password IS '用户密码';
+COMMENT ON COLUMN sys_user.remark IS '备注';
+COMMENT ON COLUMN sys_user.create_time IS '创建时间';
+COMMENT ON COLUMN sys_user.update_time IS '修改时间';
+COMMENT ON COLUMN sys_user.status IS '状态(1:停用,2:启用)';
+
+-- 用户表.索引
+CREATE INDEX idx_sys_user_mobile ON sys_user(mobile);
+CREATE INDEX idx_sys_user_status ON sys_user(status);
+
+-- 用户表.原始数据
+
+
+-- 大模型表
 create table sys_llm (
-    id serial primary key,
+    id bigserial primary key,
     name varchar(100),
     type varchar(100),
     base_url text,
@@ -47,6 +81,14 @@ insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, rem
 
 insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, remark,status) values
 (2, 'OpenAI' , 'openai', '', 'GPT-6', 'GPT-6', '未来',  '',2);
+
+
+
+
+
+
+
+
 
 
 -- 1. 角色表

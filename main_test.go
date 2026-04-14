@@ -23,6 +23,19 @@ func Test_config_NewConfig(t *testing.T) {
 	t.Logf("Config.name: %v,  code :%v", cfg.Name, cfg.Code)
 }
 
+func Test_common_Encrypt(t *testing.T) {
+	pwd := "123"
+	encrypt, err := common.Encrypt(pwd)
+	if err != nil {
+		t.Fatalf("Encrypt失败: %v", err)
+	}
+	t.Logf("加密后 : %v ", encrypt)
+
+	decrypt, err := common.Decrypt(encrypt)
+	t.Logf("解密后 : %v ", decrypt)
+
+}
+
 func Test_pg_QueryToStructs(t *testing.T) {
 	pg := pg.GetInstance()
 	defer pg.Close()

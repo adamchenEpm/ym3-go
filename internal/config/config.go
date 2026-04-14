@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	Name    string      `json:"name"`
-	Version string      `json:"version"`
-	Code    string      `json:"code"`
-	Pg      PgConfig    `json:"pg"`
-	Redis   RedisConfig `json:"redis"`
+	Name          string      `json:"name"`
+	Version       string      `json:"version"`
+	Code          string      `json:"code"`
+	EncryptionKey string      `json:"encryptionKey"`
+	Pg            PgConfig    `json:"pg"`
+	Redis         RedisConfig `json:"redis"`
 }
 
 type PgConfig struct {

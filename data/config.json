@@ -2,6 +2,7 @@
   "name": "ym3-go",
   "version": "1.0.0",
   "code": "ym3",
+  "encryptionKey" : "you-32-byte-long-secret-key-here",
   "pg": {
     "host": "124.71.0.237",
     "port": 5432,
