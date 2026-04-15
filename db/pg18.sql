@@ -149,6 +149,142 @@ insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, rem
 
 
 
+-- Agent 定义表
+CREATE TABLE IF NOT EXISTS sys_agent (
+                                         id             BIGSERIAL PRIMARY KEY,
+                                         name           VARCHAR(100) NOT NULL,          -- agent 唯一标识，如 weather_agent
+    display_name   VARCHAR(200) DEFAULT NULL,      -- 显示名称，如 "天气助手"
+    system_prompt  TEXT NOT NULL,                  -- 系统提示词
+    status         SMALLINT DEFAULT 2,             -- 状态(1:停用,2:启用)
+    create_time    TIMESTAMP DEFAULT NULL,
+    update_time    TIMESTAMP DEFAULT NULL
+    );
+
+COMMENT ON TABLE sys_agent IS 'Agent定义表';
+COMMENT ON COLUMN sys_agent.id IS 'Agent ID';
+COMMENT ON COLUMN sys_agent.name IS 'Agent唯一标识名';
+COMMENT ON COLUMN sys_agent.display_name IS '显示名称';
+COMMENT ON COLUMN sys_agent.system_prompt IS '系统提示词';
+COMMENT ON COLUMN sys_agent.status IS '状态(1:停用,2:启用)';
+COMMENT ON COLUMN sys_agent.create_time IS '创建时间';
+COMMENT ON COLUMN sys_agent.update_time IS '修改时间';
+
+CREATE INDEX idx_sys_agent_name ON sys_agent(name);
+CREATE INDEX idx_sys_agent_status ON sys_agent(status);
+
+
+-- 工具定义表
+CREATE TABLE IF NOT EXISTS sys_tool (
+                                        id              BIGSERIAL PRIMARY KEY,
+                                        name            VARCHAR(100) NOT NULL,          -- 工具名称，如 get_weather
+    description     TEXT NOT NULL,                  -- 工具描述，供 LLM 理解
+    parameters      JSONB NOT NULL,                 -- JSON Schema 参数定义
+    executor_type   VARCHAR(20) NOT NULL,           -- 执行器类型: python, nodejs, http
+    executor_config JSONB NOT NULL,                 -- 执行器配置，如 {"script_path":"/path/to/script.py"}
+    status          SMALLINT DEFAULT 2,
+    create_time     TIMESTAMP DEFAULT NULL,
+    update_time     TIMESTAMP DEFAULT NULL
+    );
+
+COMMENT ON TABLE sys_tool IS '工具定义表';
+COMMENT ON COLUMN sys_tool.id IS '工具ID';
+COMMENT ON COLUMN sys_tool.name IS '工具名称';
+COMMENT ON COLUMN sys_tool.description IS '工具描述';
+COMMENT ON COLUMN sys_tool.parameters IS '参数JSON Schema';
+COMMENT ON COLUMN sys_tool.executor_type IS '执行器类型';
+COMMENT ON COLUMN sys_tool.executor_config IS '执行器配置';
+COMMENT ON COLUMN sys_tool.status IS '状态(1:停用,2:启用)';
+COMMENT ON COLUMN sys_tool.create_time IS '创建时间';
+COMMENT ON COLUMN sys_tool.update_time IS '修改时间';
+
+CREATE INDEX idx_sys_tool_name ON sys_tool(name);
+CREATE INDEX idx_sys_tool_status ON sys_tool(status);
+
+
+-- Agent 与工具关联表
+CREATE TABLE IF NOT EXISTS sys_agent_tool (
+                                              id          BIGSERIAL PRIMARY KEY,
+                                              agent_id    BIGINT NOT NULL,
+                                              tool_id     BIGINT NOT NULL,
+                                              create_time TIMESTAMP DEFAULT NULL
+);
+
+COMMENT ON TABLE sys_agent_tool IS 'Agent与工具关联表';
+COMMENT ON COLUMN sys_agent_tool.id IS '关联ID';
+COMMENT ON COLUMN sys_agent_tool.agent_id IS 'Agent ID';
+COMMENT ON COLUMN sys_agent_tool.tool_id IS '工具ID';
+COMMENT ON COLUMN sys_agent_tool.create_time IS '创建时间';
+
+CREATE INDEX idx_sys_agent_tool_agent ON sys_agent_tool(agent_id);
+CREATE INDEX idx_sys_agent_tool_tool ON sys_agent_tool(tool_id);
+CREATE UNIQUE INDEX uk_sys_agent_tool ON sys_agent_tool(agent_id, tool_id);
+
+
+-- Agent 路由规则表（显式指定：@/命令/关键词）
+CREATE TABLE IF NOT EXISTS sys_agent_route (
+                                               id             BIGSERIAL PRIMARY KEY,
+                                               agent_id       BIGINT NOT NULL,
+                                               route_type     VARCHAR(20) NOT NULL,           -- mention, command, keyword
+    match_pattern  VARCHAR(200) NOT NULL,          -- 匹配模式，如 '@天气助手', '/weather', '天气'
+    priority       INT DEFAULT 0,                  -- 优先级，数字越大越优先
+    status         SMALLINT DEFAULT 2,
+    create_time    TIMESTAMP DEFAULT NULL,
+    update_time    TIMESTAMP DEFAULT NULL
+    );
+
+COMMENT ON TABLE sys_agent_route IS 'Agent路由规则表';
+COMMENT ON COLUMN sys_agent_route.id IS '规则ID';
+COMMENT ON COLUMN sys_agent_route.agent_id IS 'Agent ID';
+COMMENT ON COLUMN sys_agent_route.route_type IS '路由类型(mention/command/keyword)';
+COMMENT ON COLUMN sys_agent_route.match_pattern IS '匹配模式';
+COMMENT ON COLUMN sys_agent_route.priority IS '优先级';
+COMMENT ON COLUMN sys_agent_route.status IS '状态(1:停用,2:启用)';
+COMMENT ON COLUMN sys_agent_route.create_time IS '创建时间';
+COMMENT ON COLUMN sys_agent_route.update_time IS '修改时间';
+
+CREATE INDEX idx_sys_agent_route_agent ON sys_agent_route(agent_id);
+CREATE INDEX idx_sys_agent_route_type ON sys_agent_route(route_type);
+CREATE INDEX idx_sys_agent_route_status ON sys_agent_route(status);
+
+
+
+-- 插入 Agent
+INSERT INTO sys_agent (name, display_name, system_prompt, status, create_time) VALUES (
+                                                                                          'weather_agent',
+                                                                                          '天气助手',
+                                                                                          '你是一个天气助手。当用户询问天气时，调用 get_weather 工具。用中文友好回复。',
+                                                                                          2,
+                                                                                          NOW()
+                                                                                      );
+
+-- 插入工具
+INSERT INTO sys_tool (name, description, parameters, executor_type, executor_config, status, create_time) VALUES (
+                                                                                                                     'get_weather',
+                                                                                                                     '获取指定城市的实时天气',
+                                                                                                                     '{"type":"object","properties":{"city":{"type":"string","description":"城市名"}},"required":["city"]}',
+                                                                                                                     'python',
+                                                                                                                     '{"script_path":"/tmp/weather.py"}',
+                                                                                                                     2,
+                                                                                                                     NOW()
+                                                                                                                 );
+
+-- 关联 Agent 和工具
+INSERT INTO sys_agent_tool (agent_id, tool_id, create_time)
+SELECT a.id, t.id, NOW()
+FROM sys_agent a, sys_tool t
+WHERE a.name = 'weather_agent' AND t.name = 'get_weather';
+
+-- 添加路由规则：支持 @天气助手、/weather 命令、以及关键词“天气”
+INSERT INTO sys_agent_route (agent_id, route_type, match_pattern, priority, status, create_time)
+SELECT id, 'mention', '@天气助手', 100, 2, NOW() FROM sys_agent WHERE name = 'weather_agent'
+UNION ALL
+SELECT id, 'command', '/weather', 90, 2, NOW() FROM sys_agent WHERE name = 'weather_agent'
+UNION ALL
+SELECT id, 'keyword', '天气', 80, 2, NOW() FROM sys_agent WHERE name = 'weather_agent';
+
+
+
+
 
 
 
