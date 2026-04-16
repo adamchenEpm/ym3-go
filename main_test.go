@@ -2,12 +2,17 @@ package main_test
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/adamchenEpm/ym3-go/internal/common"
 	"github.com/adamchenEpm/ym3-go/internal/config"
 	"github.com/adamchenEpm/ym3-go/internal/llm"
 	"github.com/adamchenEpm/ym3-go/internal/pg"
 	pgmodel "github.com/adamchenEpm/ym3-go/internal/pg/model"
 	"github.com/adamchenEpm/ym3-go/internal/redis"
+	"io"
+	"os/exec"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -33,6 +38,63 @@ func Test_common_Encrypt(t *testing.T) {
 
 	decrypt, err := common.Decrypt(encrypt)
 	t.Logf("解密后 : %v ", decrypt)
+
+}
+
+func Test_exec(t *testing.T) {
+
+	type Request struct {
+		City string `json:"city"`
+	}
+
+	// 1. 构造要传给 Python 的数据
+	req := Request{
+		City: "上海", // 你可以改成任意城市：上海、广州...
+	}
+
+	// 2. 序列化为 JSON 字符串
+	jsonBytes, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("JSON 序列化失败:", err)
+		return
+	}
+	jsonStr := string(jsonBytes)
+	fmt.Println("传入参数:", jsonStr)
+
+	// ==================== 核心：跨平台执行 Python 脚本 ====================
+	var cmd *exec.Cmd
+
+	// Windows 和 Linux/Mac 命令不一样，自动判断系统
+	if runtime.GOOS == "windows" {
+		// Windows：python 脚本.py "JSON"
+		cmd = exec.Command("python", "e:/app1/ym3-go/data/agents/ym3_weather/weather.py")
+		stdin, _ := cmd.StdinPipe()
+		go func() {
+			defer stdin.Close()
+			io.WriteString(stdin, jsonStr)
+		}()
+
+		out, _ := cmd.CombinedOutput()
+
+		fmt.Println(string(out))
+		fmt.Println("================ 天气结果py ================")
+
+		cmd = exec.Command("node", "e:/app1/ym3-go/data/agents/ym3_weather/weather.js")
+		stdin, _ = cmd.StdinPipe()
+		go func() {
+			defer stdin.Close()
+			io.WriteString(stdin, jsonStr)
+		}()
+
+		out, _ = cmd.CombinedOutput()
+
+		fmt.Println(string(out))
+		fmt.Println("================ 天气结果js ================")
+
+	} else {
+		// Linux / Mac：python3 脚本.py "JSON"
+		cmd = exec.Command("python3", "weather.py", jsonStr)
+	}
 
 }
 
@@ -107,7 +169,7 @@ func Test_llm_Aliyun(t *testing.T) {
 	// 3. 构造请求消息
 	messages := []llm.Message{
 		{Role: "system", Content: "你是一个乐于助人的助手，请用中文回答。"},
-		{Role: "user", Content: "你好，请简单介绍一下自己。"},
+		{Role: "user", Content: "你好，你能告诉我广州的天气吗"},
 	}
 
 	req := &llm.ChatRequest{
