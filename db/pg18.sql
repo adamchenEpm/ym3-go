@@ -18,8 +18,8 @@ alter database ym3_main SET timezone TO 'Asia/Shanghai';
 -- 组织表
 CREATE TABLE IF NOT EXISTS sys_org (
     id          BIGSERIAL PRIMARY KEY,
-    code        VARCHAR(100) NOT NULL,
     name        VARCHAR(100) NOT NULL,
+    invite_code    VARCHAR(100) NOT NULL,
     user_id     BIGSERIAL DEFAULT NULL,
     remark      VARCHAR(100) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT NULL,
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS sys_org (
 
 COMMENT ON TABLE sys_org IS '组织';
 COMMENT ON COLUMN sys_org.id IS '组织Id';
-COMMENT ON COLUMN sys_org.code IS '组织编码';
 COMMENT ON COLUMN sys_org.name IS '组织名称';
+COMMENT ON COLUMN sys_org.invite_code IS '邀请编码';
 COMMENT ON COLUMN sys_org.user_id IS '管理员用户Id';
 COMMENT ON COLUMN sys_org.remark IS '备注';
 COMMENT ON COLUMN sys_org.create_time IS '创建时间';
@@ -38,13 +38,13 @@ COMMENT ON COLUMN sys_org.update_time IS '修改时间';
 COMMENT ON COLUMN sys_org.status IS '状态(1:停用,2:启用)';
 
 -- 组织表.索引
-CREATE INDEX idx_sys_org_code ON sys_org(code);
-CREATE INDEX idx_sys_org_code_name ON sys_org(name);
+CREATE INDEX idx_sys_org_name ON sys_org(name);
+CREATE INDEX idx_sys_org_invite_code ON sys_org(invite_code);
 CREATE INDEX idx_sys_org_status ON sys_org(status);
 
 -- 组织表.基础数据
-insert into sys_org (id, code, name, user_id, remark, status)
-values (1, 'xGoxNodeXpy', 'xx公司', 1, '', 2);
+insert into sys_org (id, name, invite_code, user_id, remark, status)
+values (1, 'xx公司邀请编码', 'xGoxNodeXpy',1, '', 2);
 
 
 -- 用户表
@@ -279,40 +279,27 @@ insert into sys_user_skill (id,user_id, skill_id, skill_name, description, param
     (1,1,1,'get_weather','获取天气信息','{"location": "string"}','python','{"script_path":"/path/to/get_weather.py"}',2);
 
 
--- 用户工具表
-CREATE TABLE IF NOT EXISTS sys_user_tool (
-    id              BIGSERIAL PRIMARY KEY,
-    user_id         BIGSERIAL,
-    tool_id         BIGSERIAL,
-    tool_name       VARCHAR(100) NOT NULL,
-    description     TEXT NOT NULL,
-    parameters      JSONB NOT NULL,
-    executor_type   VARCHAR(20) NOT NULL,
-    executor_config JSONB NOT NULL,
-    create_time     TIMESTAMP DEFAULT NULL,
-    update_time     TIMESTAMP DEFAULT NULL,
-    status          SMALLINT DEFAULT 2
-);
 
-COMMENT ON TABLE sys_user_tool IS '用户工具表';
-COMMENT ON COLUMN sys_user_tool.id IS '用户工具ID';
-COMMENT ON COLUMN sys_user_tool.user_id IS '用户ID';
-COMMENT ON COLUMN sys_user_tool.tool_id IS '工具ID';
-COMMENT ON COLUMN sys_user_tool.tool_name IS '工具名称';
-COMMENT ON COLUMN sys_user_tool.description IS '工具描述';
-COMMENT ON COLUMN sys_user_tool.parameters IS '参数JSON Schema';
-COMMENT ON COLUMN sys_user_tool.executor_type IS '执行器类型';
-COMMENT ON COLUMN sys_tool.executor_config IS '执行器配置';
-COMMENT ON COLUMN sys_tool.create_time IS '创建时间';
-COMMENT ON COLUMN sys_tool.update_time IS '修改时间';
-COMMENT ON COLUMN sys_tool.status IS '状态(1:停用,2:启用)';
+-- 知识库定义表
+CREATE TABLE IF NOT EXISTS sys_knowledge_base (
+                                                  id          BIGSERIAL PRIMARY KEY,
+                                                  org_id      BIGINT NOT NULL,
+                                                  user_id     BIGINT,                 -- NULL 表示组织共有
+                                                  name        VARCHAR(100) NOT NULL,
+    scope       SMALLINT DEFAULT 3,     -- 1:系统, 2:组织, 3:个人
+    is_active   BOOLEAN DEFAULT TRUE,
+    remark      TEXT
+    );
 
-CREATE INDEX idx_sys_user_tool_name ON sys_user_tool(tool_name);
-CREATE INDEX idx_sys_user_tool_status ON sys_user_tool(status);
-
-insert into sys_user_tool (id,user_id, tool_id, tool_name, description, parameters, executor_type, executor_config, status) values
-    (1,1,1,1,'get_weather','获取天气信息','{"location": "string"}','python','{"script_path":"/path/to/get_weather.py"}',2);
-
+-- 知识库分片（带向量）
+CREATE TABLE IF NOT EXISTS sys_knowledge_chunk (
+                                                   id          BIGSERIAL PRIMARY KEY,
+                                                   kb_id       BIGINT NOT NULL,
+                                                   org_id      BIGINT NOT NULL,        -- 强制带上 org_id 以便物理隔离
+                                                   content     TEXT,
+                                                   embedding   VECTOR(1536),           -- 向量字段
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
 
 -- 用户记忆表
 CREATE TABLE IF NOT EXISTS sys_user_memory (
@@ -372,3 +359,26 @@ comment on column sys_user_channel.status is '状态(1:无效,2:有效)';
 
 insert into sys_user_channel (id,name,type,app_id,app_secret,link_way,sort,remark,create_time,update_time,status) values
     (1,'feishu','飞书','feishu_app_id','feishu_app_secret','feishu_link_way',101,'feishu_remark',current_timestamp,current_timestamp,2);
+
+
+
+-- 会话表
+CREATE TABLE IF NOT EXISTS sys_chat_session (
+                                                id          BIGSERIAL PRIMARY KEY,
+                                                org_id      BIGINT NOT NULL,
+                                                user_id     BIGINT NOT NULL,
+                                                agent_id    BIGINT NOT NULL,
+                                                title       VARCHAR(200),
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+-- 消息明细表
+CREATE TABLE IF NOT EXISTS sys_chat_message (
+                                                id          BIGSERIAL PRIMARY KEY,
+                                                session_id  BIGINT NOT NULL,
+                                                role        VARCHAR(20) NOT NULL,      -- 'system', 'user', 'assistant', 'tool'
+    content     TEXT,
+    tool_calls  JSONB,                     -- 记录 AI 决定调用的工具参数
+    token_usage INT,                       -- Token 消耗统计
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
