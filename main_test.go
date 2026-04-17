@@ -10,7 +10,9 @@ import (
 	"github.com/adamchenEpm/ym3-go/internal/pg"
 	pgmodel "github.com/adamchenEpm/ym3-go/internal/pg/model"
 	"github.com/adamchenEpm/ym3-go/internal/redis"
+	"github.com/joho/godotenv"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"testing"
@@ -26,6 +28,14 @@ func Test_config_NewConfig(t *testing.T) {
 	//t.Assert(cfg != nil)
 
 	t.Logf("Config.name: %v,  code :%v", cfg.Name, cfg.Code)
+}
+
+func Test_env(t *testing.T) {
+
+	_ = godotenv.Load()
+	apiKey := os.Getenv("LLM_ALIYUN_API_KEY")
+	t.Logf("LLM_ALIYUN_API_KEY: %v", apiKey)
+
 }
 
 func Test_common_Encrypt(t *testing.T) {

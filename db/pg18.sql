@@ -14,73 +14,45 @@ create extension vector;
 
 alter database ym3_main SET timezone TO 'Asia/Shanghai';
 
--- 部门表
-CREATE TABLE IF NOT EXISTS sys_dept (
+
+-- 组织表
+CREATE TABLE IF NOT EXISTS sys_org (
     id          BIGSERIAL PRIMARY KEY,
+    code        VARCHAR(100) NOT NULL,
     name        VARCHAR(100) NOT NULL,
-    pid          BIGSERIAL DEFAULT NULL,
+    user_id     BIGSERIAL DEFAULT NULL,
     remark      VARCHAR(100) DEFAULT NULL,
     create_time TIMESTAMP DEFAULT NULL,
     update_time TIMESTAMP DEFAULT NULL,
     status      SMALLINT DEFAULT 2
 );
 
-COMMENT ON TABLE sys_dept IS '部门';
-COMMENT ON COLUMN sys_dept.id IS '部门Id';
-COMMENT ON COLUMN sys_dept.name IS '部门名称';
-COMMENT ON COLUMN sys_dept.remark IS '备注';
-COMMENT ON COLUMN sys_dept.create_time IS '创建时间';
-COMMENT ON COLUMN sys_dept.update_time IS '修改时间';
-COMMENT ON COLUMN sys_role.status IS '状态(1:停用,2:启用)';
+COMMENT ON TABLE sys_org IS '组织';
+COMMENT ON COLUMN sys_org.id IS '组织Id';
+COMMENT ON COLUMN sys_org.code IS '组织编码';
+COMMENT ON COLUMN sys_org.name IS '组织名称';
+COMMENT ON COLUMN sys_org.user_id IS '管理员用户Id';
+COMMENT ON COLUMN sys_org.remark IS '备注';
+COMMENT ON COLUMN sys_org.create_time IS '创建时间';
+COMMENT ON COLUMN sys_org.update_time IS '修改时间';
+COMMENT ON COLUMN sys_org.status IS '状态(1:停用,2:启用)';
 
--- 部门表.索引
-CREATE INDEX idx_sys_dept_name ON sys_dept(name);
-CREATE INDEX idx_sys_dept_status ON sys_dept(status);
+-- 组织表.索引
+CREATE INDEX idx_sys_org_code ON sys_org(code);
+CREATE INDEX idx_sys_org_code_name ON sys_org(name);
+CREATE INDEX idx_sys_org_status ON sys_org(status);
 
--- 部门表.基础数据
-insert into sys_dept (id, name, pid, remark, status)
-values (1, 'xx公司', null, '', 2),
-(101, '营销中心', 1, '', 2),
-(102, '设计中心', 1, '', 2),
-(104, '采购中心', 1, '', 2),
-(105, '财务中心', 1, '', 2),
-(106, '行政中心', 1, '', 2),
-(107, '信息中心', 1, '', 2),
-(109, '产品中心', 1, '', 2),
-(110, '客户中心', 1,, '', 2);
+-- 组织表.基础数据
+insert into sys_org (id, code, name, user_id, remark, status)
+values (1, 'xGoxNodeXpy', 'xx公司', 1, '', 2);
 
--- 角色表
-CREATE TABLE IF NOT EXISTS sys_role (
-    id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    remark      VARCHAR(100) DEFAULT NULL,
-    create_time TIMESTAMP DEFAULT NULL,
-    update_time TIMESTAMP DEFAULT NULL,
-    status      SMALLINT DEFAULT 2
-);
-
-COMMENT ON TABLE sys_role IS '角色';
-COMMENT ON COLUMN sys_role.id IS '角色Id';
-COMMENT ON COLUMN sys_role.name IS '角色名称';
-COMMENT ON COLUMN sys_role.remark IS '备注';
-COMMENT ON COLUMN sys_role.create_time IS '创建时间';
-COMMENT ON COLUMN sys_role.update_time IS '修改时间';
-COMMENT ON COLUMN sys_role.status IS '状态(1:停用,2:启用)';
-
--- 角色表.索引
-CREATE INDEX idx_sys_role_name ON sys_role(name);
-CREATE INDEX idx_sys_role_status ON sys_role(status);
-
--- 角色表.基础数据
-insert into sys_role (id, name, remark, status)
-values (1, '管理员', '', 2);
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS sys_user (
     id          BIGSERIAL PRIMARY KEY,
     name        VARCHAR(100) NOT NULL,
     nickname    VARCHAR(100) DEFAULT NULL,
-    dept_id     BIGSERIAL DEFAULT NULL,
+    org_id     BIGSERIAL DEFAULT NULL,
     mobile      VARCHAR(20) DEFAULT '',
     email       VARCHAR(100) DEFAULT '',
     password    VARCHAR(500) NOT NULL,
@@ -88,13 +60,13 @@ CREATE TABLE IF NOT EXISTS sys_user (
     create_time TIMESTAMP DEFAULT NULL,
     update_time TIMESTAMP DEFAULT NULL,
     status      SMALLINT DEFAULT 2
-);
+    );
 
 COMMENT ON TABLE sys_user IS '用户';
 COMMENT ON COLUMN sys_user.id IS '用户Id';
 COMMENT ON COLUMN sys_user.name IS '用户名称';
 COMMENT ON COLUMN sys_user.nickname IS '用户昵称';
-COMMENT ON COLUMN sys_user.dept_id IS '部门Id';
+COMMENT ON COLUMN sys_user.org_id IS '组织Id';
 COMMENT ON COLUMN sys_user.mobile IS '用户手机';
 COMMENT ON COLUMN sys_user.email IS '用户邮箱';
 COMMENT ON COLUMN sys_user.password IS '用户密码';
@@ -108,9 +80,9 @@ CREATE INDEX idx_sys_user_mobile ON sys_user(mobile);
 CREATE INDEX idx_sys_user_status ON sys_user(status);
 
 -- 用户表.基础数据
-insert into sys_user (id, name, nickname, dept_id, mobile, email, password, remark, status)
-values (1, 'admin', '管理员', 107, '13922110987', '232028819@qq.com',
-    'AES-GCM:VkAO3Xpls98BOQ1bILjBcGzC7Ip7zydsgyvd2VxHzA==', '', 2);
+insert into sys_user (id, name, nickname, org_id, mobile, email, password, remark, status)
+values (1, 'admin', '管理员', 1, '13922110987', '232028819@qq.com',
+        'AES-GCM:VkAO3Xpls98BOQ1bILjBcGzC7Ip7zydsgyvd2VxHzA==', '', 2);
 
 
 -- 大模型表
@@ -125,11 +97,10 @@ create table sys_llm (
     remark text,
     create_time timestamp default current_timestamp,
     update_time timestamp default current_timestamp,
-    status smallint default 1
+    status smallint default 2
 );
 
-comment on table sys_llm is '大模型表';
-comment on column sys_llm.id is 'ID';
+comment on table sys_llm is '用户大模型表';
 comment on column sys_llm.name is '名称';
 comment on column sys_llm.type is '类型';
 comment on column sys_llm.base_url is '基本URL';
@@ -141,205 +112,237 @@ comment on column sys_llm.create_time is '创建时间';
 comment on column sys_llm.update_time is '更新时间';
 comment on column sys_llm.status is '状态(1:无效,2:有效)';
 
-insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, remark,status) values
-(1, 'Aliyun' , 'aliyun',  'https://dashscope.aliyuncs.com/compatible-mode/v1', 'sk-16ab6965525b4bd4bd245d9e8a3a693c', 'glm-5', 'glm-5', '智普',   2);
+insert into sys_llm (id, name, type, base_url, api_key, model_id, model_name, remark,status) values
+    (1,'Aliyun' , 'aliyun',  'https://dashscope.aliyuncs.com/compatible-mode/v1', 'sk-16ab6965525b4bd4bd245d9e8a3a693c', 'glm-5', 'glm-5', '智普',   2);
 
-insert into sys_llm (id,name, type, base_url, api_key, model_id, model_name, remark,status) values
-(2, 'OpenAI' , 'openai', '', 'GPT-6', 'GPT-6', '未来',  '',2);
+insert into sys_llm (id, name, type, base_url, api_key, model_id, model_name, remark,status) values
+    (2,'OpenAI' , 'openai', '', 'GPT-6', 'GPT-6', '未来',  '',2);
+
+-- 用户大模型表
+create table sys_user_llm (
+    id bigserial primary key,
+    user_id bigserial,
+    llm_id bigserial,
+    name varchar(100),
+    type varchar(100),
+    base_url text,
+    api_key varchar(100),
+    model_id varchar(100),
+    model_name varchar(100),
+    remark text,
+    create_time timestamp default current_timestamp,
+    update_time timestamp default current_timestamp,
+    status smallint default 2
+);
+
+comment on table sys_user_llm is '用户大模型表';
+comment on column sys_user_llm.user_id is '用户ID';
+comment on column sys_user_llm.llm_id is '大模型ID';
+comment on column sys_user_llm.name is '名称';
+comment on column sys_user_llm.type is '类型';
+comment on column sys_user_llm.base_url is '基本URL';
+comment on column sys_user_llm.api_key is 'API Key';
+comment on column sys_user_llm.model_id is '模型ID';
+comment on column sys_user_llm.model_name is '模型名称';
+comment on column sys_user_llm.remark is '备注';
+comment on column sys_user_llm.create_time is '创建时间';
+comment on column sys_user_llm.update_time is '更新时间';
+comment on column sys_user_llm.status is '状态(1:无效,2:有效)';
+
+insert into sys_user_llm (id,user_id, llm_id, name, type, base_url, api_key, model_id, model_name, remark,status) values
+    (1,1,  1,'Aliyun' , 'aliyun',  'https://dashscope.aliyuncs.com/compatible-mode/v1', 'sk-16ab6965525b4bd4bd245d9e8a3a693c', 'glm-5', 'glm-5', '智普',   2);
+
+insert into sys_user_llm (id,user_id, llm_id, name, type, base_url, api_key, model_id, model_name, remark,status) values
+    (2,1,  2,'OpenAI' , 'openai', '', 'GPT-6', 'GPT-6', '未来',  '',2);
 
 
-
--- Agent 定义表
+-- Agent表
 CREATE TABLE IF NOT EXISTS sys_agent (
-                                         id             BIGSERIAL PRIMARY KEY,
-                                         name           VARCHAR(100) NOT NULL,          -- agent 唯一标识，如 weather_agent
-    display_name   VARCHAR(200) DEFAULT NULL,      -- 显示名称，如 "天气助手"
-    system_prompt  TEXT NOT NULL,                  -- 系统提示词
-    status         SMALLINT DEFAULT 2,             -- 状态(1:停用,2:启用)
+    id             BIGSERIAL PRIMARY KEY,
+    name           VARCHAR(100) NOT NULL,
+    nick_name   VARCHAR(200) DEFAULT NULL,
+    system_prompt  TEXT NOT NULL,
     create_time    TIMESTAMP DEFAULT NULL,
-    update_time    TIMESTAMP DEFAULT NULL
+    update_time    TIMESTAMP DEFAULT NULL,
+    status         SMALLINT DEFAULT 2
     );
 
 COMMENT ON TABLE sys_agent IS 'Agent定义表';
 COMMENT ON COLUMN sys_agent.id IS 'Agent ID';
+COMMENT ON COLUMN sys_agent.user_id IS '用户ID';
+COMMENT ON COLUMN sys_agent.agent_id IS 'Agent ID';
 COMMENT ON COLUMN sys_agent.name IS 'Agent唯一标识名';
-COMMENT ON COLUMN sys_agent.display_name IS '显示名称';
+COMMENT ON COLUMN sys_agent.nick_name IS '显示名称';
 COMMENT ON COLUMN sys_agent.system_prompt IS '系统提示词';
-COMMENT ON COLUMN sys_agent.status IS '状态(1:停用,2:启用)';
 COMMENT ON COLUMN sys_agent.create_time IS '创建时间';
 COMMENT ON COLUMN sys_agent.update_time IS '修改时间';
+COMMENT ON COLUMN sys_agent.status IS '状态(1:停用,2:启用)';
 
 CREATE INDEX idx_sys_agent_name ON sys_agent(name);
 CREATE INDEX idx_sys_agent_status ON sys_agent(status);
 
+insert into sys_agent (id,name, nick_name, system_prompt, status) values
+    (1,'weather_agent','天气助手','你是一个天气助手，你可以回答用户关于天气的问题。',2);
 
--- 工具定义表
-CREATE TABLE IF NOT EXISTS sys_tool (
-                                        id              BIGSERIAL PRIMARY KEY,
-                                        name            VARCHAR(100) NOT NULL,          -- 工具名称，如 get_weather
-    description     TEXT NOT NULL,                  -- 工具描述，供 LLM 理解
-    parameters      JSONB NOT NULL,                 -- JSON Schema 参数定义
-    executor_type   VARCHAR(20) NOT NULL,           -- 执行器类型: python, nodejs, http
-    executor_config JSONB NOT NULL,                 -- 执行器配置，如 {"script_path":"/path/to/script.py"}
-    status          SMALLINT DEFAULT 2,
-    create_time     TIMESTAMP DEFAULT NULL,
-    update_time     TIMESTAMP DEFAULT NULL
+-- 用户Agent表
+CREATE TABLE IF NOT EXISTS sys_user_agent (
+    id             BIGSERIAL PRIMARY KEY,
+    user_id        BIGSERIAL,
+    agent_id       BIGSERIAL,
+    agent_name           VARCHAR(100) NOT NULL,
+    agent_nick_name   VARCHAR(200) DEFAULT NULL,
+    system_prompt  TEXT NOT NULL,
+    create_time    TIMESTAMP DEFAULT NULL,
+    update_time    TIMESTAMP DEFAULT NULL,
+    status         SMALLINT DEFAULT 2
     );
 
-COMMENT ON TABLE sys_tool IS '工具定义表';
-COMMENT ON COLUMN sys_tool.id IS '工具ID';
-COMMENT ON COLUMN sys_tool.name IS '工具名称';
-COMMENT ON COLUMN sys_tool.description IS '工具描述';
-COMMENT ON COLUMN sys_tool.parameters IS '参数JSON Schema';
-COMMENT ON COLUMN sys_tool.executor_type IS '执行器类型';
+COMMENT ON TABLE sys_user_agent IS '用户Agent定义表';
+COMMENT ON COLUMN sys_user_agent.id IS '用户Agent ID';
+COMMENT ON COLUMN sys_user_agent.user_id IS '用户ID';
+COMMENT ON COLUMN sys_user_agent.agent_id IS 'Agent ID';
+COMMENT ON COLUMN sys_user_agent.agent_name IS 'Agent唯一标识名';
+COMMENT ON COLUMN sys_user_agent.agent_nick_name IS '显示名称';
+COMMENT ON COLUMN sys_user_agent.system_prompt IS '系统提示词';
+COMMENT ON COLUMN sys_user_agent.create_time IS '创建时间';
+COMMENT ON COLUMN sys_user_agent.update_time IS '修改时间';
+COMMENT ON COLUMN sys_user_agent.status IS '状态(1:停用,2:启用)';
+
+CREATE INDEX idx_sys_user_agent_name ON sys_user_agent(name);
+CREATE INDEX idx_sys_user_agent_status ON sys_user_agent(status);
+
+insert into sys_user_agent (id,user_id, agent_id, agent_name, agent_nick_name, system_prompt, status) values
+(1,1,1,'weather_agent','天气助手','你是一个天气助手，你可以回答用户关于天气的问题。',2);
+
+
+-- skill表
+CREATE TABLE IF NOT EXISTS sys_skill (
+    id              BIGSERIAL PRIMARY KEY,
+    name            VARCHAR(100) NOT NULL,
+    description     TEXT NOT NULL,
+    parameters      JSONB NOT NULL,
+    executor_type   VARCHAR(20) NOT NULL,
+    executor_config JSONB NOT NULL,
+    create_time     TIMESTAMP DEFAULT NULL,
+    update_time     TIMESTAMP DEFAULT NULL,
+    status          SMALLINT DEFAULT 2
+    );
+
+COMMENT ON TABLE sys_skill IS '技能定义表';
+COMMENT ON COLUMN sys_skill.id IS '技能ID';
+COMMENT ON COLUMN sys_skill.name IS '技能名称';
+COMMENT ON COLUMN sys_skill.description IS '技能描述';
+COMMENT ON COLUMN sys_skill.parameters IS '参数JSON Schema';
+COMMENT ON COLUMN sys_skill.executor_type IS '执行器类型';
+COMMENT ON COLUMN sys_skill.executor_config IS '执行器配置';
+COMMENT ON COLUMN sys_skill.create_time IS '创建时间';
+COMMENT ON COLUMN sys_skill.update_time IS '修改时间';
+COMMENT ON COLUMN sys_skill.status IS '状态(1:停用,2:启用)';
+
+CREATE INDEX idx_sys_skill_name ON sys_skill(name);
+CREATE INDEX idx_sys_skill_status ON sys_skill(status);
+
+insert into sys_skill (id,name, description, parameters, executor_type, executor_config, status) values
+    (1,'get_weather','获取天气信息','{"location": "string"}','python','{"script_path":"/path/to/get_weather.py"}',2);
+
+-- 用户skill表
+CREATE TABLE IF NOT EXISTS sys_user_skill (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         BIGSERIAL,
+    skill_id        BIGSERIAL,
+    skill_name            VARCHAR(100) NOT NULL,
+    description     TEXT NOT NULL,
+    parameters      JSONB NOT NULL,
+    executor_type   VARCHAR(20) NOT NULL,
+    executor_config JSONB NOT NULL,
+    create_time     TIMESTAMP DEFAULT NULL,
+    update_time     TIMESTAMP DEFAULT NULL,
+    status          SMALLINT DEFAULT 2
+    );
+
+COMMENT ON TABLE sys_user_skill IS '用户技能定义表';
+COMMENT ON COLUMN sys_user_skill.id IS '技能ID';
+COMMENT ON COLUMN sys_user_skill.skill_id IS '技能ID';
+COMMENT ON COLUMN sys_user_skill.skill_name IS '技能名称';
+COMMENT ON COLUMN sys_user_skill.description IS '技能描述';
+COMMENT ON COLUMN sys_user_skill.parameters IS '参数JSON Schema';
+COMMENT ON COLUMN sys_user_skill.executor_type IS '执行器类型';
+COMMENT ON COLUMN sys_user_skill.executor_config IS '执行器配置';
+COMMENT ON COLUMN sys_user_skill.create_time IS '创建时间';
+COMMENT ON COLUMN sys_user_skill.update_time IS '修改时间';
+COMMENT ON COLUMN sys_user_skill.status IS '状态(1:停用,2:启用)';
+
+CREATE INDEX idx_sys_user_skill_name ON sys_user_skill(name);
+CREATE INDEX idx_sys_user_skill_status ON sys_user_skill(status);
+
+insert into sys_user_skill (id,user_id, skill_id, skill_name, description, parameters, executor_type, executor_config, status) values
+    (1,1,1,'get_weather','获取天气信息','{"location": "string"}','python','{"script_path":"/path/to/get_weather.py"}',2);
+
+
+-- 用户工具表
+CREATE TABLE IF NOT EXISTS sys_user_tool (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         BIGSERIAL,
+    tool_id         BIGSERIAL,
+    tool_name       VARCHAR(100) NOT NULL,
+    description     TEXT NOT NULL,
+    parameters      JSONB NOT NULL,
+    executor_type   VARCHAR(20) NOT NULL,
+    executor_config JSONB NOT NULL,
+    create_time     TIMESTAMP DEFAULT NULL,
+    update_time     TIMESTAMP DEFAULT NULL,
+    status          SMALLINT DEFAULT 2
+);
+
+COMMENT ON TABLE sys_user_tool IS '用户工具表';
+COMMENT ON COLUMN sys_user_tool.id IS '用户工具ID';
+COMMENT ON COLUMN sys_user_tool.user_id IS '用户ID';
+COMMENT ON COLUMN sys_user_tool.tool_id IS '工具ID';
+COMMENT ON COLUMN sys_user_tool.tool_name IS '工具名称';
+COMMENT ON COLUMN sys_user_tool.description IS '工具描述';
+COMMENT ON COLUMN sys_user_tool.parameters IS '参数JSON Schema';
+COMMENT ON COLUMN sys_user_tool.executor_type IS '执行器类型';
 COMMENT ON COLUMN sys_tool.executor_config IS '执行器配置';
-COMMENT ON COLUMN sys_tool.status IS '状态(1:停用,2:启用)';
 COMMENT ON COLUMN sys_tool.create_time IS '创建时间';
 COMMENT ON COLUMN sys_tool.update_time IS '修改时间';
+COMMENT ON COLUMN sys_tool.status IS '状态(1:停用,2:启用)';
 
-CREATE INDEX idx_sys_tool_name ON sys_tool(name);
-CREATE INDEX idx_sys_tool_status ON sys_tool(status);
+CREATE INDEX idx_sys_user_tool_name ON sys_user_tool(tool_name);
+CREATE INDEX idx_sys_user_tool_status ON sys_user_tool(status);
 
-
--- Agent 与工具关联表
-CREATE TABLE IF NOT EXISTS sys_agent_tool (
-                                              id          BIGSERIAL PRIMARY KEY,
-                                              agent_id    BIGINT NOT NULL,
-                                              tool_id     BIGINT NOT NULL,
-                                              create_time TIMESTAMP DEFAULT NULL
-);
-
-COMMENT ON TABLE sys_agent_tool IS 'Agent与工具关联表';
-COMMENT ON COLUMN sys_agent_tool.id IS '关联ID';
-COMMENT ON COLUMN sys_agent_tool.agent_id IS 'Agent ID';
-COMMENT ON COLUMN sys_agent_tool.tool_id IS '工具ID';
-COMMENT ON COLUMN sys_agent_tool.create_time IS '创建时间';
-
-CREATE INDEX idx_sys_agent_tool_agent ON sys_agent_tool(agent_id);
-CREATE INDEX idx_sys_agent_tool_tool ON sys_agent_tool(tool_id);
-CREATE UNIQUE INDEX uk_sys_agent_tool ON sys_agent_tool(agent_id, tool_id);
+insert into sys_user_tool (id,user_id, tool_id, tool_name, description, parameters, executor_type, executor_config, status) values
+    (1,1,1,1,'get_weather','获取天气信息','{"location": "string"}','python','{"script_path":"/path/to/get_weather.py"}',2);
 
 
--- Agent 路由规则表（显式指定：@/命令/关键词）
-CREATE TABLE IF NOT EXISTS sys_agent_route (
-                                               id             BIGSERIAL PRIMARY KEY,
-                                               agent_id       BIGINT NOT NULL,
-                                               route_type     VARCHAR(20) NOT NULL,           -- mention, command, keyword
-    match_pattern  VARCHAR(200) NOT NULL,          -- 匹配模式，如 '@天气助手', '/weather', '天气'
-    priority       INT DEFAULT 0,                  -- 优先级，数字越大越优先
-    status         SMALLINT DEFAULT 2,
-    create_time    TIMESTAMP DEFAULT NULL,
-    update_time    TIMESTAMP DEFAULT NULL
+-- 用户记忆表
+CREATE TABLE IF NOT EXISTS sys_user_memory (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         BIGSERIAL,
+    description     TEXT NOT NULL,
+    parameters      JSONB NOT NULL,
+    create_time     TIMESTAMP DEFAULT NULL,
+    update_time     TIMESTAMP DEFAULT NULL,
+    status          SMALLINT DEFAULT 2
     );
 
-COMMENT ON TABLE sys_agent_route IS 'Agent路由规则表';
-COMMENT ON COLUMN sys_agent_route.id IS '规则ID';
-COMMENT ON COLUMN sys_agent_route.agent_id IS 'Agent ID';
-COMMENT ON COLUMN sys_agent_route.route_type IS '路由类型(mention/command/keyword)';
-COMMENT ON COLUMN sys_agent_route.match_pattern IS '匹配模式';
-COMMENT ON COLUMN sys_agent_route.priority IS '优先级';
-COMMENT ON COLUMN sys_agent_route.status IS '状态(1:停用,2:启用)';
-COMMENT ON COLUMN sys_agent_route.create_time IS '创建时间';
-COMMENT ON COLUMN sys_agent_route.update_time IS '修改时间';
+COMMENT ON TABLE sys_user_memory IS '用户记忆表';
+COMMENT ON COLUMN sys_user_memory.id IS '用户记忆ID';
+COMMENT ON COLUMN sys_user_memory.user_id IS '用户ID';
+COMMENT ON COLUMN sys_user_memory.description IS '记忆描述';
+COMMENT ON COLUMN sys_user_memory.parameters IS '参数JSON Schema';
+COMMENT ON COLUMN sys_user_memory.create_time IS '创建时间';
+COMMENT ON COLUMN sys_user_memory.update_time IS '修改时间';
+COMMENT ON COLUMN sys_user_memory.status IS '状态(1:停用,2:启用)';
 
-CREATE INDEX idx_sys_agent_route_agent ON sys_agent_route(agent_id);
-CREATE INDEX idx_sys_agent_route_type ON sys_agent_route(route_type);
-CREATE INDEX idx_sys_agent_route_status ON sys_agent_route(status);
+CREATE INDEX idx_sys_user_memory_description ON sys_user_memory(description);
+CREATE INDEX idx_sys_user_memory_status ON sys_user_memory(status);
 
-
-
--- 插入 Agent
-INSERT INTO sys_agent (name, display_name, system_prompt, status, create_time) VALUES (
-                                                                                          'weather_agent',
-                                                                                          '天气助手',
-                                                                                          '你是一个天气助手。当用户询问天气时，调用 get_weather 工具。用中文友好回复。',
-                                                                                          2,
-                                                                                          NOW()
-                                                                                      );
-
--- 插入工具
-INSERT INTO sys_tool (name, description, parameters, executor_type, executor_config, status, create_time) VALUES (
-                                                                                                                     'get_weather',
-                                                                                                                     '获取指定城市的实时天气',
-                                                                                                                     '{"type":"object","properties":{"city":{"type":"string","description":"城市名"}},"required":["city"]}',
-                                                                                                                     'python',
-                                                                                                                     '{"script_path":"/tmp/weather.py"}',
-                                                                                                                     2,
-                                                                                                                     NOW()
-                                                                                                                 );
-
--- 关联 Agent 和工具
-INSERT INTO sys_agent_tool (agent_id, tool_id, create_time)
-SELECT a.id, t.id, NOW()
-FROM sys_agent a, sys_tool t
-WHERE a.name = 'weather_agent' AND t.name = 'get_weather';
-
--- 添加路由规则：支持 @天气助手、/weather 命令、以及关键词“天气”
-INSERT INTO sys_agent_route (agent_id, route_type, match_pattern, priority, status, create_time)
-SELECT id, 'mention', '@天气助手', 100, 2, NOW() FROM sys_agent WHERE name = 'weather_agent'
-UNION ALL
-SELECT id, 'command', '/weather', 90, 2, NOW() FROM sys_agent WHERE name = 'weather_agent'
-UNION ALL
-SELECT id, 'keyword', '天气', 80, 2, NOW() FROM sys_agent WHERE name = 'weather_agent';
+insert into sys_user_memory (id,user_id, description, parameters) values
+    (1,1, '你是一个技术专家','{"location": "string"}');
 
 
-
-
-
-
-
-
-
-
-
--- 1. 角色表
-create table if not exists sys_role (
-    id serial primary key,
-    name varchar(50) not null unique,
-    description text,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-);
-
-comment on table sys_role is '用户角色表';
-comment on column sys_role.id is '角色ID';
-comment on column sys_role.name is '角色名称：admin, user, viewer';
-comment on column sys_role.description is '角色描述';
-comment on column sys_role.create_time is '创建时间';
-comment on column sys_role.update_time is '更新时间';
-comment on column sys_role.status is '状态(1:有效,0:无效)';
-
--- 2. 用户表
-create table if not exists sys_user (
-    id serial primary key,
-    username varchar(100),
-    password_hash varchar(255),
-    email varchar(255),
-    phone varchar(50) not null unique,
-    avatar_url text,
-    role_id int references sys_role(id) on delete set null,
-    last_login_at timestamp,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_user is '系统内部用户表';
-comment on column sys_user.id is '用户ID';
-comment on column sys_user.username is '用户名';
-comment on column sys_user.password_hash is '密码哈希';
-comment on column sys_user.email is '邮箱';
-comment on column sys_user.phone is '手机号';
-comment on column sys_user.avatar_url is '头像URL';
-comment on column sys_user.role_id is '角色ID';
-comment on column sys_user.last_login_at is '最后登录时间';
-comment on column sys_user.create_time is '创建时间';
-comment on column sys_user.update_time is '更新时间';
-comment on column sys_user.status is '状态(1:有效,0:无效)';
-
-
--- 4. 通道表（飞书机器人/微信公众号等）
-create table if not exists sys_channel (
+-- 用户通道表
+create table if not exists sys_user_channel (
     id bigserial primary key,
     name varchar(255) not null,
     type varchar(255) not null,
@@ -350,259 +353,22 @@ create table if not exists sys_channel (
     remark varchar(255) default '',
     create_time timestamp default current_timestamp,
     update_time timestamp default current_timestamp,
-    status smallint default 1
+    status smallint default 2
     );
 
-comment on table sys_channel is '通道';
-comment on column sys_channel.id is 'ID';
-comment on column sys_channel.name is '名称';
-comment on column sys_channel.type is '类型(feishu,dingtalk,wechat_personal,wechat_work,qq)';
-comment on column sys_channel.app_id is '应用ID';
-comment on column sys_channel.app_secret is '应用密钥';
-comment on column sys_channel.link_way is '链接方式(websocket,webhook,http)';
-comment on column sys_channel.sort is '排序';
-comment on column sys_channel.remark is '备注';
-comment on column sys_channel.create_time is '创建时间';
-comment on column sys_channel.update_time is '修改时间';
-comment on column sys_channel.status is '状态(1:无效,2:有效)';
+comment on table sys_user_channel is '用户通道表';
+comment on column sys_user_channel.id is 'ID';
+comment on column sys_user_channel.name is '名称';
+comment on column sys_user_channel.type is '类型(feishu,dingtalk,wechat_personal,wechat_work,qq)';
+comment on column sys_user_channel.app_id is '应用ID';
+comment on column sys_user_channel.app_secret is '应用密钥';
+comment on column sys_user_channel.link_way is '链接方式(websocket,webhook,http)';
+comment on column sys_user_channel.sort is '排序';
+comment on column sys_user_channel.remark is '备注';
+comment on column sys_user_channel.create_time is '创建时间';
+comment on column sys_user_channel.update_time is '修改时间';
+comment on column sys_user_channel.status is '状态(1:无效,2:有效)';
 
 
-
--- 3. 通道实例表（对应每个机器人/应用）
-create table if not exists sys_channel_instance (
-    id serial primary key,
-    channel_type varchar(20) not null,
-    name varchar(100) not null,
-    config jsonb not null,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-);
-comment on table sys_channel_instance is '通道实例表（飞书机器人/微信公众号等）';
-comment on column sys_channel_instance.id is '实例ID';
-comment on column sys_channel_instance.channel_type is '通道类型(feishu,dingtalk,wechat_personal,wechat_work,qq)';
-comment on column sys_channel_instance.name is '实例名称';
-comment on column sys_channel_instance.config is '平台配置JSON，如{"app_id":"xxx","app_secret":"xxx"}';
-comment on column sys_channel_instance.create_time is '创建时间';
-comment on column sys_channel_instance.update_time is '更新时间';
-comment on column sys_channel_instance.status is '状态(1:有效,0:无效)';
-
--- 4. 用户绑定表（内部用户 ↔ 外部通道身份）
-create table if not exists sys_user_binding (
-    id serial primary key,
-    internal_user_id int not null references sys_user(id) on delete cascade,
-    channel_instance_id int not null references sys_channel_instance(id) on delete cascade,
-    external_user_id varchar(100) not null,
-    external_chat_id varchar(100),
-    external_name varchar(100),
-    bind_data jsonb,
-    bind_time timestamp default current_timestamp,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1,
-    unique(channel_instance_id, external_user_id)
-    );
-comment on table sys_user_binding is '内部用户与外部通道账户绑定关系表';
-comment on column sys_user_binding.id is '绑定ID';
-comment on column sys_user_binding.internal_user_id is '内部用户ID';
-comment on column sys_user_binding.channel_instance_id is '通道实例ID';
-comment on column sys_user_binding.external_user_id is '平台侧用户ID（飞书open_id、微信openid等）';
-comment on column sys_user_binding.external_chat_id is '会话ID（私聊时等于external_user_id，群聊时为群ID）';
-comment on column sys_user_binding.external_name is '昵称（冗余）';
-comment on column sys_user_binding.bind_data is '扩展信息';
-comment on column sys_user_binding.bind_time is '绑定时间';
-comment on column sys_user_binding.create_time is '创建时间';
-comment on column sys_user_binding.update_time is '更新时间';
-comment on column sys_user_binding.status is '状态(1:有效,0:无效)';
-
--- 5. 群组配置表
-create table if not exists sys_group_config (
-    id serial primary key,
-    channel_instance_id int not null references sys_channel_instance(id) on delete cascade,
-    external_chat_id varchar(100) not null,
-    config jsonb not null,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1,
-    unique(channel_instance_id, external_chat_id)
-    );
-comment on table sys_group_config is '群组配置表';
-comment on column sys_group_config.id is '配置ID';
-comment on column sys_group_config.channel_instance_id is '通道实例ID';
-comment on column sys_group_config.external_chat_id is '群ID（飞书chat_id、微信群ID等）';
-comment on column sys_group_config.config is '群配置JSON，如{"only_reply_when_at":true,"default_model":"gpt-4"}';
-comment on column sys_group_config.create_time is '创建时间';
-comment on column sys_group_config.update_time is '更新时间';
-comment on column sys_group_config.status is '状态(1:有效,0:无效)';
-
--- 6. 模型规则表
-create table if not exists sys_model_rule (
-    id serial primary key,
-    channel_instance_id int references sys_channel_instance(id) on delete cascade,
-    match_type varchar(20) not null,
-    match_value text,
-    priority int default 0,
-    model_provider varchar(50) not null,
-    model_name varchar(100) not null,
-    model_params jsonb,
-    enabled boolean default true,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_model_rule is 'AI模型调用规则表';
-comment on column sys_model_rule.id is '规则ID';
-comment on column sys_model_rule.channel_instance_id is '通道实例ID（null表示全局规则）';
-comment on column sys_model_rule.match_type is '匹配类型(command,group,user_role,user_id,global)';
-comment on column sys_model_rule.match_value is '匹配值（如/help、admin、群ID、用户ID）';
-comment on column sys_model_rule.priority is '优先级（数值越小越高）';
-comment on column sys_model_rule.model_provider is '模型提供商(openai,azure,local,anthropic)';
-comment on column sys_model_rule.model_name is '模型名称';
-comment on column sys_model_rule.model_params is '模型参数，如{"temperature":0.7,"max_tokens":2000}';
-comment on column sys_model_rule.enabled is '是否启用';
-comment on column sys_model_rule.create_time is '创建时间';
-comment on column sys_model_rule.update_time is '更新时间';
-comment on column sys_model_rule.status is '状态(1:有效,0:无效)';
-
--- 7. 菜单表
-create table if not exists sys_menu (
-    id serial primary key,
-    parent_id int default 0,
-    name varchar(100) not null,
-    path varchar(200),
-    icon varchar(50),
-    permission_key varchar(100) unique,
-    sort_order int default 0,
-    role_ids jsonb default '[]',
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_menu is '前端菜单配置表';
-comment on column sys_menu.id is '菜单ID';
-comment on column sys_menu.parent_id is '父菜单ID';
-comment on column sys_menu.name is '菜单名称';
-comment on column sys_menu.path is '路由路径';
-comment on column sys_menu.icon is '图标';
-comment on column sys_menu.permission_key is '权限标识';
-comment on column sys_menu.sort_order is '排序号';
-comment on column sys_menu.role_ids is '允许访问的角色ID数组，如[1,2]';
-comment on column sys_menu.create_time is '创建时间';
-comment on column sys_menu.update_time is '更新时间';
-comment on column sys_menu.status is '状态(1:有效,0:无效)';
-
--- 8. 审计日志表
-create table if not exists sys_audit_log (
-    id bigserial primary key,
-    user_id int references sys_user(id) on delete set null,
-    channel_instance_id int references sys_channel_instance(id) on delete set null,
-    external_user_id varchar(100),
-    action varchar(50) not null,
-    request_data jsonb,
-    response_data jsonb,
-    error_message text,
-    duration_ms int,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_audit_log is '审计日志表';
-comment on column sys_audit_log.id is '日志ID';
-comment on column sys_audit_log.user_id is '内部用户ID';
-comment on column sys_audit_log.channel_instance_id is '通道实例ID';
-comment on column sys_audit_log.external_user_id is '外部用户ID';
-comment on column sys_audit_log.action is '操作类型(send_message,receive_message,model_call,login,config_change)';
-comment on column sys_audit_log.request_data is '请求数据';
-comment on column sys_audit_log.response_data is '响应数据';
-comment on column sys_audit_log.error_message is '错误信息';
-comment on column sys_audit_log.duration_ms is '耗时(毫秒)';
-comment on column sys_audit_log.create_time is '创建时间';
-comment on column sys_audit_log.update_time is '更新时间';
-comment on column sys_audit_log.status is '状态(1:有效,0:无效)';
-
--- 9. 系统配置表
-create table if not exists sys_config (
-    config_key varchar(100) primary key,
-    value text,
-    description text,
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_config is '系统配置表';
-comment on column sys_config.config_key is '配置键';
-comment on column sys_config.value is '配置值';
-comment on column sys_config.description is '配置描述';
-comment on column sys_config.create_time is '创建时间';
-comment on column sys_config.update_time is '更新时间';
-comment on column sys_config.status is '状态(1:有效,0:无效)';
-
--- 10. 对话记忆表（向量记忆，用于龙虾记忆）
-create table if not exists sys_conversation_memory (
-    id bigserial primary key,
-    user_id int not null references sys_user(id) on delete cascade,
-    channel_instance_id int references sys_channel_instance(id) on delete set null,
-    role varchar(20) not null,
-    content text not null,
-    embedding vector(1536),
-    create_time timestamp default current_timestamp,
-    update_time timestamp default current_timestamp,
-    status smallint default 1
-    );
-comment on table sys_conversation_memory is '对话记忆表，存储向量化的对话片段（龙虾记忆）';
-comment on column sys_conversation_memory.id is '记忆ID';
-comment on column sys_conversation_memory.user_id is '用户ID';
-comment on column sys_conversation_memory.channel_instance_id is '来源通道实例ID';
-comment on column sys_conversation_memory.role is '角色(user/assistant)';
-comment on column sys_conversation_memory.content is '原始对话内容';
-comment on column sys_conversation_memory.embedding is '向量嵌入(1536维)';
-comment on column sys_conversation_memory.create_time is '创建时间';
-comment on column sys_conversation_memory.update_time is '更新时间';
-comment on column sys_conversation_memory.status is '状态(1:有效,0:无效)';
-
--- 可选：创建向量检索索引（数据量大时再建）
--- create index idx_memory_embedding on sys_conversation_memory using hnsw (embedding vector_cosine_ops);
-create index idx_memory_user_time on sys_conversation_memory(user_id, create_time);
-
--- ============================================
--- 初始化数据
--- ============================================
-
-insert into sys_role (name, description) values
-                                             ('admin', '系统管理员，所有权限'),
-                                             ('user', '普通用户，可使用AI功能'),
-                                             ('viewer', '只读用户，仅查看日志')
-    on conflict (name) do nothing;
-
-insert into sys_menu (parent_id, name, path, icon, permission_key, sort_order, role_ids) values
-                                                                                             (0, '控制台', '/dashboard', 'Dashboard', 'menu:dashboard', 1, '[]'),
-                                                                                             (0, '对话记录', '/conversations', 'Message', 'menu:conversations', 2, '[]'),
-                                                                                             (0, '模型管理', '/models', 'Robot', 'menu:models', 3, '[1]'),
-                                                                                             (0, '通道管理', '/channels', 'Api', 'menu:channels', 4, '[1]'),
-                                                                                             (0, '用户管理', '/users', 'User', 'menu:users', 5, '[1]'),
-                                                                                             (0, '系统设置', '/settings', 'Setting', 'menu:settings', 6, '[1]')
-    on conflict (permission_key) do nothing;
-
-insert into sys_config (config_key, value, description) values
-                                                            ('auto_create_user', 'true', '是否自动为外部用户创建内部账户'),
-                                                            ('default_model_provider', 'openai', '默认模型提供商'),
-                                                            ('default_model_name', 'gpt-3.5-turbo', '默认模型名称'),
-                                                            ('ws_ping_interval', '30', 'WebSocket心跳间隔（秒）')
-    on conflict (config_key) do nothing;
-
--- 可选：创建自动更新 update_time 的触发器（如果需要）
--- 通用触发器函数
-create or replace function update_updated_at_column()
-returns trigger as $$
-begin
-    new.update_time = current_timestamp;
-return new;
-end;
-$$ language plpgsql;
-
--- 为需要自动更新 update_time 的表创建触发器（以 sys_channel 为例）
--- 其他表按需添加
--- create trigger trigger_sys_channel_update_time
---     before update on sys_channel
---     for each row
---     execute function update_updated_at_column();
+insert into sys_user_channel (id,name,type,app_id,app_secret,link_way,sort,remark,create_time,update_time,status) values
+    (1,'feishu','飞书','feishu_app_id','feishu_app_secret','feishu_link_way',101,'feishu_remark',current_timestamp,current_timestamp,2);
