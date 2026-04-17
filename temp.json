@@ -1,0 +1,30 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "好的，我来帮您查询广州的天气信息。\n\nget_weather(city=广州)",
+        "reasoning_content": "1. **分析用户请求：**\n    *   用户说：“你好，你能告诉我广州的天气吗”（你好，你能告诉我广州的天气吗？）\n    *   意图：用户想知道广州的天气。\n    *   涉及实体：城市 = 广州（广州）。\n\n2. **识别可用工具：**\n    *   `get_location(city)`：查询定位信息。\n    *   `get_weather(city)`：查询天气信息。\n\n3. **选择合适的工具：**\n    *   用户询问的是*天气*，而不是位置。\n    *   因此，`get_weather` 是正确的工具。\n\n4. **构建函数调用：**\n    *   函数名称：`get_weather`\n    *   参数：`city=\"广州\"`\n\n5. **构思回复：**\n    *   用户问了一个问题。我应该使用该工具来回答。\n    *   在许多大语言模型框架中，输出应该是工具调用本身或包含工具调用的自然语言回复。\n    *   由于提示指令通常暗示直接行动，我将输出函数调用。\n\n6. **最终输出生成：**\n    *   `get_weather(city=广州)`",
+        "role": "assistant"
+      },
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null
+    }
+  ],
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 83,
+    "completion_tokens": 261,
+    "total_tokens": 344,
+    "completion_tokens_details": {
+      "reasoning_tokens": 242
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "created": 1776437086,
+  "system_fingerprint": null,
+  "model": "glm-5",
+  "id": "chatcmpl-16b68526-9583-94a5-ab63-ecbcd7dba05d"
+}

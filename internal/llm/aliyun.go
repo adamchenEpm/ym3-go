@@ -41,12 +41,45 @@ func (c *aliyunClient) ChatCompletion(ctx context.Context, req *ChatRequest) (*C
 	if model == "" {
 		model = c.model
 	}
+
+	var tools = []interface{}{
+		map[string]interface{}{
+			"type": "function",
+			"function": map[string]interface{}{
+				"name":        "get_location",
+				"description": "获取用户当前地理位置",
+				"parameters": map[string]interface{}{
+					"type":       "object",
+					"properties": map[string]interface{}{},
+				},
+			},
+		},
+		map[string]interface{}{
+			"type": "function",
+			"function": map[string]interface{}{
+				"name":        "get_weather",
+				"description": "查询指定城市的天气",
+				"parameters": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"location": map[string]interface{}{
+							"type":        "string",
+							"description": "城市名称，如：北京",
+						},
+					},
+					"required": []string{"location"},
+				},
+			},
+		},
+	}
+
 	body := map[string]interface{}{
 		"model":       model,
 		"messages":    req.Messages,
 		"temperature": req.Temperature,
 		"max_tokens":  req.MaxTokens,
 		"stream":      false,
+		"tools":       tools,
 	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
@@ -69,6 +102,11 @@ func (c *aliyunClient) ChatCompletion(ctx context.Context, req *ChatRequest) (*C
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("aliyun error %d: %s", resp.StatusCode, string(bodyBytes))
+	} else {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		fmt.Println("-----------------")
+		fmt.Println(string(bodyBytes))
+		fmt.Println("-----------------")
 	}
 
 	var apiResp struct {
@@ -83,7 +121,10 @@ func (c *aliyunClient) ChatCompletion(ctx context.Context, req *ChatRequest) (*C
 			TotalTokens      int `json:"total_tokens"`
 		} `json:"usage"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+
+	decoder := json.NewDecoder(resp.Body)
+
+	if err := decoder.Decode(&apiResp); err != nil {
 		return nil, err
 	}
 	if len(apiResp.Choices) == 0 {

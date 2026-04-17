@@ -1,0 +1,41 @@
+{
+  "choices": [
+    {
+      "message": {
+        "content": "你好！我来帮你查询广州的天气情况。",
+        "reasoning_content": "用户想要了解广州的天气信息。我需要使用get_weather函数来查询广州的天气。根据函数定义，get_weather需要一个location参数，用户明确提到了\"广州\"，所以我可以直接使用这个城市名称作为参数。",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"location\": \"广州\"}",
+              "name": "get_weather"
+            },
+            "id": "tool-366ccee22b704d8596a0c6c90445acf4",
+            "index": 0,
+            "type": "function"
+          }
+        ]
+      },
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "logprobs": null
+    }
+  ],
+  "object": "chat.completion",
+  "usage": {
+    "prompt_tokens": 285,
+    "completion_tokens": 68,
+    "total_tokens": 353,
+    "completion_tokens_details": {
+      "reasoning_tokens": 46
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 51
+    }
+  },
+  "created": 1776439089,
+  "system_fingerprint": null,
+  "model": "glm-5",
+  "id": "chatcmpl-54f02a68-9b81-96fc-83a8-d35c17d95eae"
+}

@@ -162,12 +162,16 @@ func Test_Redis_BasicOps(t *testing.T) {
 }
 
 func Test_llm_Aliyun(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("LLM_ALIYUN_API_KEY")
+	fmt.Println(apiKey)
+
 	// 1. 创建阿里百炼客户端配置
 	cfg := &llm.Config{
 		Provider:      llm.ProviderAliyun,
-		AliyunAPIKey:  "sk-16ab6965525b4bd4bd245d9e8a3a693c", // 请替换为您的真实 API Key
+		AliyunAPIKey:  apiKey,
 		AliyunBaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-		AliyunModel:   "glm-5", // 可选 qwen-plus, qwen-max
+		AliyunModel:   "glm-5",
 	}
 
 	// 2. 创建客户端
@@ -176,9 +180,17 @@ func Test_llm_Aliyun(t *testing.T) {
 		t.Fatalf("创建客户端失败: %v", err)
 	}
 
+	systemPrompt := `你是一个助手，你可以回答用户关于位置和天气 的问题。
+	1.查位置(get_location): 可以查询指定城市的定位信息，参数为city，例如：get_location(city=广州)
+	2.查天气(get_weather1): 可以查询指定城市的天气信息，参数为city，例如：get_weather1(city=广州)
+
+	`
+
+	//	systemPrompt = "用中文回答用户的问题"
+
 	// 3. 构造请求消息
 	messages := []llm.Message{
-		{Role: "system", Content: "你是一个乐于助人的助手，请用中文回答。"},
+		{Role: "system", Content: systemPrompt},
 		{Role: "user", Content: "你好，你能告诉我广州的天气吗"},
 	}
 
@@ -197,6 +209,10 @@ func Test_llm_Aliyun(t *testing.T) {
 	if err != nil {
 		t.Fatalf("调用大模型失败: %v", err)
 	}
+
+	fmt.Println("================ 天气结果1 ================")
+	fmt.Println(resp)
+	fmt.Println("================ 天气结果2 ================")
 
 	// 5. 输出结果
 	t.Logf("模型回复: %s", resp.Content)
