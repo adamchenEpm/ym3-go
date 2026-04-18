@@ -5,28 +5,30 @@ import (
 	"fmt"
 )
 
-// ============================================================================
-// 请求结构
-// ============================================================================
+const (
+	RoleSystem    = "system"
+	RoleUser      = "user"
+	RoleAssistant = "assistant"
+	RoleTool      = "tool"
+)
 
-// ChatCompletionRequest 聊天补全请求（OpenAI 兼容）
-type ChatCompletionRequest struct {
-	Model            string          `json:"model"`
-	Messages         []Message       `json:"messages"`
-	Tools            []Tool          `json:"tools,omitempty"`
-	ToolChoice       interface{}     `json:"tool_choice,omitempty"` // "none", "auto", "required" 或具体工具
-	Temperature      *float64        `json:"temperature,omitempty"`
-	TopP             *float64        `json:"top_p,omitempty"`
-	N                int             `json:"n,omitempty"`
-	Stop             []string        `json:"stop,omitempty"`
-	MaxTokens        int             `json:"max_tokens,omitempty"`
-	PresencePenalty  *float64        `json:"presence_penalty,omitempty"`
-	FrequencyPenalty *float64        `json:"frequency_penalty,omitempty"`
-	LogitBias        map[string]int  `json:"logit_bias,omitempty"`
-	User             string          `json:"user,omitempty"`
-	Stream           bool            `json:"stream,omitempty"`
-	ResponseFormat   *ResponseFormat `json:"response_format,omitempty"`
-	Seed             *int            `json:"seed,omitempty"`
+type Req struct {
+	Model            string          `json:"model"`                       //指定使用哪个模型，比如 gpt-4o、qwen-turbo、glm-4 等。必填。
+	Messages         []Message       `json:"messages"`                    //对话消息列表，包含用户、助手、系统的历史对话。必填。
+	Tools            []Tool          `json:"tools,omitempty"`             //提供给模型调用的工具列表（如函数、插件）。模型可以选择调用。可选。
+	ToolChoice       interface{}     `json:"tool_choice,omitempty"`       // 控制模型是否必须调用工具： - "none"：不调用 - "auto"：自动决定（默认） - "required"：必须调用一个工具 - 也可指定具体工具名。可选。
+	Temperature      *float64        `json:"temperature,omitempty"`       //“创意程度”。值越大（最高2）回答越随机、有创造力；越小（最低0）越确定、保守。默认1。
+	TopP             *float64        `json:"top_p,omitempty"`             //“采样技术”。值越大（最高1）回答越随机、有创造力；越小（最低0）越确定、保守。默认1。
+	N                int             `json:"n,omitempty"`                 //一次生成几个回答。默认1。设为>1会消耗更多 token。
+	Stop             []string        `json:"stop,omitempty"`              //停止词。模型遇到这些词就停止输出。例如 ["\n", "。"]。
+	MaxTokens        int             `json:"max_tokens,omitempty"`        //生成回复的最大 token 数（不含输入）。限制回答长度。
+	PresencePenalty  *float64        `json:"presence_penalty,omitempty"`  //话题新鲜度。正数（最高2）鼓励模型聊新话题；负数（最低-2）鼓励重复已有话题。
+	FrequencyPenalty *float64        `json:"frequency_penalty,omitempty"` //用词重复惩罚。正数减少重复使用同一词语。
+	LogitBias        map[string]int  `json:"logit_bias,omitempty"`        //特定 token 的“偏好调整”。极少使用，用于强制模型避免或偏向某些词。
+	User             string          `json:"user,omitempty"`              //用户标识，用于服务端监控、限流或分析。可选。
+	Stream           bool            `json:"stream,omitempty"`            //是否流式输出。true 时数据逐字/逐段返回，适合打字机效果；false 一次性返回完整结果。
+	ResponseFormat   *ResponseFormat `json:"response_format,omitempty"`   //要求输出格式，例如 {"type": "json_object"} 强制输出合法 JSON。
+	Seed             *int            `json:"seed,omitempty"`              //随机种子。相同种子可尽量使结果可复现（不保证完全一致）。
 }
 
 // ResponseFormat 响应格式
